@@ -1,0 +1,29 @@
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from flask import Blueprint, jsonify
+from models.consensus import Consensus
+from models.papers import Paper
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+consensus_bp = Blueprint('consensus', __name__)
+
+@consensus_bp.route('/<paper_id>', methods=['GET'])
+def get_consensus(paper_id):
+    """Get consensus result for a specific paper."""
+    try:
+        paper = Paper.objects(paper_id=paper_id).first()
+        if not paper:
+            return jsonify({'error': 'Paper not found'}), 404
+
+        consensus = Consensus.objects(paper=paper).first()
+        if not consensus:
+            return jsonify({'error': 'Consensus not found'}), 404
+
+        return jsonify(consensus.to_dict())
+    except Exception as e:
+        logger.error(f"Error getting consensus for paper {paper_id}: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500

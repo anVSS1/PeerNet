@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}Upload JSON - PeerNet++{% endblock %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title">
+        <i class="fas fa-code me-2"></i>
+        Upload JSON Data
+    </h1>
+    <p class="page-subtitle">
+        Upload structured paper metadata in JSON format
+    </p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card animate-fade-in">
+            <div class="card-header">
+                <h5 class="mb-0">JSON Paper Data</h5>
+            </div>
+            <div class="card-body">
+                <form id="jsonForm">
+                    <div class="mb-3">
+                        <label class="form-label">Paper JSON Data</label>
+                        <textarea class="form-control" id="json_data" rows="15" placeholder="Enter JSON data (single object or array)..." required></textarea>
+                        <div class="form-text">Paste your JSON paper data. Supports single paper object or array of papers for batch upload.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-info" id="previewBtn">
+                            <i class="fas fa-eye me-2"></i>Preview Papers
+                        </button>
+                        <span class="ms-2 text-muted" id="paperCount"></span>
+                    </div>
+                    
+                    <!-- Preview Area -->
+                    <div id="previewArea" style="display: none;" class="mb-3">
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Preview</h6>
+                            <div id="previewContent"></div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">
+                        <i class="fas fa-upload me-2"></i>Upload Paper(s)
+                    </button>
+                    <a href="/upload" class="btn btn-secondary ms-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card animate-fade-in">
+            <div class="card-header">
+                <h5 class="mb-0">JSON Format Example</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="text-primary mb-3">Single Paper:</h6>
+                <pre class="bg-light p-3 rounded" style="font-size: 0.85rem;"><code>{
+  "paper_id": "example_001",
+  "title": "AI in Academic Review",
+  "authors": ["Dr. Smith", "Prof. Johnson"],
+  "year": "2024",
+  "abstract": "This paper explores...",
+  "doi": "10.1000/example",
+  "keywords": ["AI", "review"]
+}</code></pre>
+                
+                <h6 class="text-primary mb-3 mt-3">Batch Upload (Array):</h6>
+                <pre class="bg-light p-3 rounded" style="font-size: 0.85rem;"><code>[
+  {
+    "paper_id": "example_001",
+    "title": "First Paper",
+    "authors": ["Dr. Smith"],
+    "year": "2024"
+  },
+  {
+    "paper_id": "example_002",
+    "title": "Second Paper",
+    "authors": ["Prof. Johnson"],
+    "year": "2024"
+  }
+]</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let parsedPapers = null;
+
+// Preview Button Handler
+document.getElementById('previewBtn').addEventListener('click', function() {
+    const jsonData = document.getElementById('json_data').value;
+    const previewArea = document.getElementById('previewArea');
+    const previewContent = document.getElementById('previewContent');
+    const paperCount = document.getElementById('paperCount');
+    
+    try {
+        parsedPapers = JSON.parse(jsonData);
+        
+        // Check if it's an array or single object
+        const isArray = Array.isArray(parsedPapers);
+        const papers = isArray ? parsedPapers : [parsedPapers];
+        
+        if (papers.length === 0) {
+            throw new Error('No papers found in JSON');
+        }
+        
+        // Generate preview HTML
+        let html = `<strong>${papers.length} paper${papers.length > 1 ? 's' : ''} detected:</strong><ul class="mt-2 mb-0">`;
+        papers.forEach((paper, index) => {
+            const title = paper.title || 'Untitled';
+            const authors = paper.authors ? (Array.isArray(paper.authors) ? paper.authors.join(', ') : paper.authors) : 'Unknown';
+            const year = paper.year || 'N/A';
+            html += `<li><strong>${title}</strong> - ${authors} (${year})</li>`;
+        });
+        html += '</ul>';
+        
+        previewContent.innerHTML = html;
+        previewArea.style.display = 'block';
+        paperCount.innerHTML = `<i class="fas fa-check-circle text-success me-1"></i>${papers.length} paper${papers.length > 1 ? 's' : ''} ready to upload`;
+        
+        // Change button text
+        document.getElementById('uploadBtn').innerHTML = `<i class="fas fa-upload me-2"></i>Upload ${papers.length} Paper${papers.length > 1 ? 's' : ''}`;
+        
+    } catch (error) {
+        previewArea.style.display = 'block';
+        previewContent.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Invalid JSON: ${error.message}</span>`;
+        paperCount.innerHTML = '<i class="fas fa-times-circle text-danger me-1"></i>Invalid JSON';
+        parsedPapers = null;
+    }
+});
+
+// Form Submit Handler
+document.getElementById('jsonForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const jsonData = document.getElementById('json_data').value;
+    const uploadBtn = document.getElementById('uploadBtn');
+    
+    try {
+        const parsedData = JSON.parse(jsonData);
+        const isArray = Array.isArray(parsedData);
+        const papers = isArray ? parsedData : [parsedData];
+        
+        if (papers.length === 0) {
+            throw new Error('No papers to upload');
+        }
+        
+        // Show loading state
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+        uploadBtn.disabled = true;
+        
+        if (isArray && papers.length > 1) {
+            // Batch upload
+            const batchData = papers.map(paper => ({
+                source: 'json',
+                data: paper
+            }));
+            
+            fetch('/api/batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    papers: batchData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.successful > 0) {
+                    inAppNotifications.showBatchComplete(data.successful, data.total_processed);
+                    setTimeout(() => window.location.href = '/papers', 1500);
+                } else {
+                    showUploadError(data.error || 'Batch upload failed');
+                    uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Papers';
+                    uploadBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                showUploadError(error.message);
+                uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Papers';
+                uploadBtn.disabled = false;
+            });
+        } else {
+            // Single upload
+            fetch('/api/papers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    source: 'json',
+                    data: papers[0]
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.paper) {
+                    showUploadSuccess(data.paper.title || 'Paper');
+                    setTimeout(() => window.location.href = '/papers', 1000);
+                } else {
+                    showUploadError(data.error || 'Upload failed');
+                    uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Paper';
+                    uploadBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                showUploadError(error.message);
+                uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Paper';
+                uploadBtn.disabled = false;
+            });
+        }
+    } catch (error) {
+        showUploadError('Invalid JSON format. Please check your data.');
+        uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Paper(s)';
+        uploadBtn.disabled = false;
+    }
+});
+
+// Auto-clear preview when JSON changes
+document.getElementById('json_data').addEventListener('input', function() {
+    document.getElementById('previewArea').style.display = 'none';
+    document.getElementById('paperCount').innerHTML = '';
+    document.getElementById('uploadBtn').innerHTML = '<i class="fas fa-upload me-2"></i>Upload Paper(s)';
+    parsedPapers = null;
+});
+</script>
+{% endblock %}

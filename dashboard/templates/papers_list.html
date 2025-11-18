@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Papers - PeerNet++{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">
+                <i class="fas fa-file-alt me-2"></i>
+                Research Papers
+            </h1>
+            <p class="page-subtitle">
+                Manage and review academic papers ({{ count }} total)
+            </p>
+        </div>
+        <a href="/upload" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Upload Papers
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4 animate-fade-in">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Search Papers</label>
+                <input type="text" class="form-control" name="search" placeholder="Title, authors, or keywords..." value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Year</label>
+                <input type="number" class="form-control" name="year" placeholder="2024" value="{{ request.args.get('year', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Source</label>
+                <select class="form-select" name="source">
+                    <option value="">All Sources</option>
+                    <option value="json" {{ 'selected' if request.args.get('source') == 'json' }}>JSON</option>
+                    <option value="pdf" {{ 'selected' if request.args.get('source') == 'pdf' }}>PDF</option>
+                    <option value="openalex" {{ 'selected' if request.args.get('source') == 'openalex' }}>OpenAlex</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select class="form-select" name="status">
+                    <option value="">All Status</option>
+                    <option value="reviewed" {{ 'selected' if request.args.get('status') == 'reviewed' }}>Reviewed</option>
+                    <option value="pending" {{ 'selected' if request.args.get('status') == 'pending' }}>Pending</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <a href="/papers" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Papers Table -->
+<div class="card animate-fade-in">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>
+            All Papers
+        </h5>
+        <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" style="width: auto;" onchange="updateSort(this.value)">
+                <option value="title">Sort by Title</option>
+                <option value="year">Sort by Year</option>
+                <option value="status">Sort by Status</option>
+            </select>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if papers %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Authors</th>
+                            <th>Year</th>
+                            <th>Source</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for paper in papers %}
+                        <tr>
+                            <td>
+                                <div style="max-width: 300px;">
+                                    <h6 class="mb-1">{{ paper.title[:50] }}{% if paper.title|length > 50 %}...{% endif %}</h6>
+                                    <small class="text-secondary">ID: {{ paper.paper_id }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="max-width: 200px;">
+                                    {{ paper.authors[:2]|join(', ') if paper.authors else 'Unknown' }}
+                                    {% if paper.authors|length > 2 %}...{% endif %}
+                                </div>
+                            </td>
+                            <td>{{ paper.year or 'N/A' }}</td>
+                            <td>
+                                <span class="badge bg-primary">{{ paper.source or 'JSON' }}</span>
+                            </td>
+                            <td>
+                                {% if paper.consensus %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Reviewed
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="/paper/{{ paper.paper_id }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
+                                    {% if paper.consensus %}
+                                    <a href="/api/papers/{{ paper.paper_id }}/export-pdf" class="btn btn-sm btn-success" title="Export PDF Report">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-file-plus fa-4x text-secondary mb-3"></i>
+                <h4>No Papers Found</h4>
+                <p class="text-secondary">Start by uploading your first research paper.</p>
+                <a href="/upload" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Upload First Paper
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateSort(sortBy) {
+    const url = new URL(window.location);
+    url.searchParams.set('sort', sortBy);
+    window.location.href = url.toString();
+}
+</script>
+{% endblock %}

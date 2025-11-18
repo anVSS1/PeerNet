@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Upload PDF - PeerNet++{% endblock %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title">
+        <i class="fas fa-file-pdf me-2"></i>
+        Upload PDF Files
+    </h1>
+    <p class="page-subtitle">
+        Upload PDF documents for automatic text extraction and analysis
+    </p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card animate-fade-in">
+            <div class="card-header">
+                <h5 class="mb-0">PDF File Upload</h5>
+            </div>
+            <div class="card-body">
+                <form id="pdfForm" action="/api/papers" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Select PDF Files</label>
+                        <input type="file" class="form-control" name="file" accept=".pdf" required>
+                        <div class="form-text">Select one or more PDF files to upload. Text and metadata will be extracted automatically.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Using your saved reviewer configuration. <a href="/reviewers">Change settings</a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="autoReview" name="auto_review" checked>
+                            <label class="form-check-label" for="autoReview">
+                                Start AI review automatically after upload
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success" id="uploadBtn">
+                        <i class="fas fa-upload me-2"></i>Upload PDFs
+                    </button>
+                    <a href="/upload" class="btn btn-secondary ms-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card animate-fade-in">
+            <div class="card-header">
+                <h5 class="mb-0">Upload Information</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="text-primary">What happens next?</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success me-2"></i>PDF text extraction</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Metadata parsing</li>
+                    <li><i class="fas fa-check text-success me-2"></i>AI review process</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Results available in dashboard</li>
+                </ul>
+                
+                <hr>
+                
+                <h6 class="text-primary">Supported formats</h6>
+                <p class="small text-secondary">
+                    PDF files with text content. Scanned PDFs may have limited text extraction.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+document.getElementById('pdfForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const uploadBtn = document.getElementById('uploadBtn');
+    
+    // Reviewer preferences will be loaded from user's saved configuration
+    
+    // Show loading state
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+    uploadBtn.disabled = true;
+    
+    fetch('/api/papers', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.paper) {
+            showUploadSuccess(data.paper.title || 'PDF Document');
+            setTimeout(() => window.location.href = '/papers', 1000);
+        } else {
+            showUploadError(data.error || 'Upload failed');
+            uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload PDFs';
+            uploadBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        showUploadError(error.message);
+        uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload PDFs';
+        uploadBtn.disabled = false;
+    });
+});
+</script>
+{% endblock %}

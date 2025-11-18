@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+{% block title %}Advanced Analytics - PeerNet++{% endblock %}
+
+{% block extra_css %}
+<style>
+.analytics-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    color: var(--secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.trend-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.trend-up {
+    background-color: rgba(5, 150, 105, 0.1);
+    color: var(--success);
+}
+
+.trend-down {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.chart-container {
+    height: 400px;
+    position: relative;
+    margin: 1rem 0;
+}
+
+.performance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.reviewer-card {
+    background: var(--white);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+}
+
+.reviewer-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: var(--light);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0.5rem 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header animate-fade-in">
+    <h1 class="page-title">
+        <i class="fas fa-chart-line me-2"></i>
+        Advanced Analytics
+    </h1>
+    <p class="page-subtitle">
+        Comprehensive system performance and review analytics
+    </p>
+</div>
+
+<!-- Key Metrics -->
+<div class="row">
+    <div class="col-lg-3 col-md-6">
+        <div class="analytics-card animate-fade-in">
+            <div class="metric-value" id="total-papers">-</div>
+            <div class="metric-label">Total Papers</div>
+            <div class="trend-indicator trend-up" id="papers-trend">
+                <i class="fas fa-arrow-up me-1"></i>+12% this month
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="analytics-card animate-fade-in">
+            <div class="metric-value" id="completion-rate">-</div>
+            <div class="metric-label">Completion Rate</div>
+            <div class="trend-indicator trend-up" id="completion-trend">
+                <i class="fas fa-arrow-up me-1"></i>+5% this week
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="analytics-card animate-fade-in">
+            <div class="metric-value" id="avg-review-time">-</div>
+            <div class="metric-label">Avg Review Time (hrs)</div>
+            <div class="trend-indicator trend-down" id="time-trend">
+                <i class="fas fa-arrow-down me-1"></i>-8% faster
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="analytics-card animate-fade-in">
+            <div class="metric-value" id="acceptance-rate">-</div>
+            <div class="metric-label">Acceptance Rate</div>
+            <div class="trend-indicator trend-up" id="acceptance-trend">
+                <i class="fas fa-arrow-up me-1"></i>Stable
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card animate-fade-in">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-area me-2"></i>
+                    Review Trends Over Time
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card animate-fade-in">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Decision Distribution
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="decisionsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="card animate-fade-in">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-users me-2"></i>
+            Reviewer Performance
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="performance-grid" id="reviewer-performance">
+            <!-- Reviewer cards will be populated by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Quality Metrics -->
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card animate-fade-in">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-star me-2"></i>
+                    Average Quality Scores
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="qualityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card animate-fade-in">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Bias Detection Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="bias-summary">
+                    <!-- Bias detection data will be populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadAnalyticsData();
+});
+
+async function loadAnalyticsData() {
+    try {
+        // Load dashboard analytics
+        const response = await fetch('/api/analytics/dashboard');
+        const data = await response.json();
+        
+        // Update key metrics
+        document.getElementById('total-papers').textContent = data.summary.total_papers;
+        document.getElementById('completion-rate').textContent = data.summary.completion_rate + '%';
+        document.getElementById('avg-review-time').textContent = data.quality_metrics.average_review_time_hours;
+        document.getElementById('acceptance-rate').textContent = data.outcomes.acceptance_rate + '%';
+        
+        // Load trends data
+        const trendsResponse = await fetch('/api/analytics/trends');
+        const trendsData = await trendsResponse.json();
+        
+        // Create charts
+        createTrendsChart(trendsData.monthly_trends);
+        createDecisionsChart(data.outcomes);
+        createQualityChart(data.quality_metrics.average_scores);
+        
+        // Load performance data
+        const performanceResponse = await fetch('/api/analytics/performance');
+        const performanceData = await performanceResponse.json();
+        
+        createReviewerPerformance(performanceData.reviewer_performance);
+        createBiasSummary(data.bias_detection);
+        
+    } catch (error) {
+        console.error('Error loading analytics:', error);
+    }
+}
+
+function createTrendsChart(trendsData) {
+    const ctx = document.getElementById('trendsChart').getContext('2d');
+    
+    const months = Object.keys(trendsData).reverse();
+    const papersData = months.map(month => trendsData[month].papers);
+    const reviewsData = months.map(month => trendsData[month].reviews);
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Papers Submitted',
+                data: papersData,
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Reviews Completed',
+                data: reviewsData,
+                borderColor: '#059669',
+                backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function createDecisionsChart(outcomes) {
+    const ctx = document.getElementById('decisionsChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Accepted', 'Rejected', 'Revisions'],
+            datasets: [{
+                data: [outcomes.accepted, outcomes.rejected, outcomes.revisions],
+                backgroundColor: ['#059669', '#dc2626', '#d97706'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function createQualityChart(scores) {
+    const ctx = document.getElementById('qualityChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Novelty', 'Clarity', 'Methodology', 'Relevance', 'Overall'],
+            datasets: [{
+                label: 'Average Scores',
+                data: [
+                    scores.novelty || 0,
+                    scores.clarity || 0,
+                    scores.methodology || 0,
+                    scores.relevance || 0,
+                    scores.overall || 0
+                ],
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                pointBackgroundColor: '#2563eb'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 10
+                }
+            }
+        }
+    });
+}
+
+function createReviewerPerformance(reviewerData) {
+    const container = document.getElementById('reviewer-performance');
+    container.innerHTML = '';
+    
+    Object.entries(reviewerData).forEach(([reviewerId, stats]) => {
+        const card = document.createElement('div');
+        card.className = 'reviewer-card';
+        
+        const scorePercentage = (stats.avg_overall_score / 10) * 100;
+        const confidencePercentage = stats.avg_confidence * 100;
+        
+        card.innerHTML = `
+            <h6 class="text-primary">${reviewerId}</h6>
+            <p class="mb-2">Reviews: <strong>${stats.total_reviews}</strong></p>
+            <div>
+                <small class="text-secondary">Avg Score: ${stats.avg_overall_score}/10</small>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${scorePercentage}%"></div>
+                </div>
+            </div>
+            <div>
+                <small class="text-secondary">Confidence: ${Math.round(confidencePercentage)}%</small>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${confidencePercentage}%"></div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(card);
+    });
+}
+
+function createBiasSummary(biasData) {
+    const container = document.getElementById('bias-summary');
+    
+    if (biasData.total_flags === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5>No Bias Detected</h5>
+                <p class="text-secondary">All reviews appear to be unbiased</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let flagsHtml = '<h6>Detected Bias Types:</h6><ul class="list-unstyled">';
+    
+    Object.entries(biasData.flag_types).forEach(([type, count]) => {
+        flagsHtml += `<li><i class="fas fa-flag text-warning me-2"></i>${type}: ${count} instances</li>`;
+    });
+    
+    flagsHtml += '</ul>';
+    
+    container.innerHTML = `
+        <div class="alert alert-warning">
+            <h6><i class="fas fa-exclamation-triangle me-2"></i>Total Flags: ${biasData.total_flags}</h6>
+            ${flagsHtml}
+        </div>
+    `;
+}
+</script>
+{% endblock %}

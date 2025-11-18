@@ -1,0 +1,638 @@
+{% extends "base.html" %} {% block title %}Reviewer Builder - PeerNet++{%
+endblock %} {% block content %}
+<div class="page-header animate-fade-in">
+  <h1 class="page-title">
+    <i class="fas fa-user-cog me-2"></i>
+    Custom Reviewer Builder
+  </h1>
+  <p class="page-subtitle">
+    Create your personalized AI reviewers with custom personalities
+  </p>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card animate-fade-in">
+      <div class="card-header">
+        <h5>Create New Reviewer</h5>
+      </div>
+      <div class="card-body">
+        <form id="reviewerForm">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Reviewer Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                placeholder="Dr. Smith"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Expertise Area</label>
+              <select class="form-select" id="expertise">
+                <option value="methodology">Methodology Expert</option>
+                <option value="novelty">Innovation Specialist</option>
+                <option value="clarity">Communication Expert</option>
+                <option value="theory">Theory Specialist</option>
+                <option value="application">Application Expert</option>
+              </select>
+            </div>
+          </div>
+
+          <h6 class="text-primary mb-3">Personality Traits</h6>
+
+          <div class="mb-4">
+            <label class="form-label"
+              >Strictness: <span id="strictnessValue">0.5</span></label
+            >
+            <input
+              type="range"
+              class="form-range"
+              id="strictness"
+              min="0"
+              max="1"
+              step="0.1"
+              value="0.5"
+            />
+            <div class="d-flex justify-content-between">
+              <small class="text-secondary">Lenient</small>
+              <small class="text-secondary">Harsh</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label"
+              >Detail Focus: <span id="detailValue">0.5</span></label
+            >
+            <input
+              type="range"
+              class="form-range"
+              id="detail_focus"
+              min="0"
+              max="1"
+              step="0.1"
+              value="0.5"
+            />
+            <div class="d-flex justify-content-between">
+              <small class="text-secondary">Big Picture</small>
+              <small class="text-secondary">Nitpicky</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label"
+              >Innovation Bias: <span id="innovationValue">0.5</span></label
+            >
+            <input
+              type="range"
+              class="form-range"
+              id="innovation_bias"
+              min="0"
+              max="1"
+              step="0.1"
+              value="0.5"
+            />
+            <div class="d-flex justify-content-between">
+              <small class="text-secondary">Conservative</small>
+              <small class="text-secondary">Novelty-seeking</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label"
+              >Writing Standards: <span id="writingValue">0.5</span></label
+            >
+            <input
+              type="range"
+              class="form-range"
+              id="writing_standards"
+              min="0"
+              max="1"
+              step="0.1"
+              value="0.5"
+            />
+            <div class="d-flex justify-content-between">
+              <small class="text-secondary">Relaxed</small>
+              <small class="text-secondary">Perfectionist</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label"
+              >Methodology Rigor: <span id="methodologyValue">0.5</span></label
+            >
+            <input
+              type="range"
+              class="form-range"
+              id="methodology_rigor"
+              min="0"
+              max="1"
+              step="0.1"
+              value="0.5"
+            />
+            <div class="d-flex justify-content-between">
+              <small class="text-secondary">Flexible</small>
+              <small class="text-secondary">Statistical Purist</small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label"
+              >Optimism: <span id="optimismValue">0.5</span></label
+            >
+            <input
+              type="range"
+              class="form-range"
+              id="optimism"
+              min="0"
+              max="1"
+              step="0.1"
+              value="0.5"
+            />
+            <div class="d-flex justify-content-between">
+              <small class="text-secondary">Critical</small>
+              <small class="text-secondary">Encouraging</small>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-save me-2"></i>Create Reviewer
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card animate-fade-in">
+      <div class="card-header">
+        <h5>Quick Templates</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <button
+            class="btn btn-outline-primary"
+            onclick="loadTemplate('encourager')"
+          >
+            <i class="fas fa-heart me-2"></i>The Encourager
+          </button>
+          <button
+            class="btn btn-outline-primary"
+            onclick="loadTemplate('perfectionist')"
+          >
+            <i class="fas fa-search me-2"></i>The Perfectionist
+          </button>
+          <button
+            class="btn btn-outline-primary"
+            onclick="loadTemplate('innovator')"
+          >
+            <i class="fas fa-lightbulb me-2"></i>The Innovator
+          </button>
+          <button
+            class="btn btn-outline-primary"
+            onclick="loadTemplate('traditionalist')"
+          >
+            <i class="fas fa-book me-2"></i>The Traditionalist
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card animate-fade-in mt-4">
+      <div class="card-header">
+        <h5><i class="fas fa-eye me-2"></i>Personality Preview</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-secondary fst-italic" id="preview-text">
+          Adjust the sliders to see how the reviewer's tone changes.
+        </p>
+        <button
+          class="btn btn-sm btn-outline-primary mt-2"
+          onclick="getPreview()"
+        >
+          Generate Preview
+        </button>
+      </div>
+    </div>
+
+    <div class="card animate-fade-in mt-4">
+      <div class="card-header">
+        <h5><i class="fas fa-cogs me-2"></i>Review Configuration</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label">Number of Reviewers</label>
+          <select class="form-select" id="numReviewers" onchange="updateReviewerSlots()">
+            <option value="3">3 Reviewers</option>
+            <option value="4">4 Reviewers</option>
+            <option value="5" selected>5 Reviewers</option>
+            <option value="6">6 Reviewers</option>
+            <option value="7">7 Reviewers</option>
+          </select>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label">
+            Assign Reviewers to Slots 
+            <button type="button" class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#reviewerInfoModal">
+              <i class="fas fa-exclamation-circle"></i> Built-in Reviewers Info
+            </button>
+          </label>
+          <div id="reviewerSlots">
+            <p class="text-muted small">Select number of reviewers above</p>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="saveConfiguration()">
+          <i class="fas fa-save me-2"></i>Save Configuration
+        </button>
+      </div>
+    </div>
+
+    <div class="card animate-fade-in mt-4">
+      <div class="card-header">
+        <h5>Your Reviewers</h5>
+      </div>
+      <div class="card-body" id="reviewersList">
+        <p class="text-secondary">Loading...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Update slider values
+  document.querySelectorAll('input[type="range"]').forEach((slider) => {
+    slider.addEventListener("input", function () {
+      const valueSpan = document.getElementById(this.id + "Value");
+      if (valueSpan) valueSpan.textContent = this.value;
+    });
+  });
+
+  // Load templates
+  function loadTemplate(type) {
+    const templates = {
+      encourager: { strictness: 0.3, optimism: 0.8, name: "The Encourager" },
+      perfectionist: {
+        strictness: 0.9,
+        detail_focus: 0.9,
+        name: "The Perfectionist",
+      },
+      innovator: {
+        innovation_bias: 0.9,
+        strictness: 0.4,
+        name: "The Innovator",
+      },
+      traditionalist: {
+        innovation_bias: 0.2,
+        methodology_rigor: 0.8,
+        name: "The Traditionalist",
+      },
+    };
+
+    const template = templates[type];
+    if (template) {
+      Object.keys(template).forEach((key) => {
+        const element = document.getElementById(key);
+        if (element) {
+          element.value = template[key];
+          element.dispatchEvent(new Event("input"));
+        }
+      });
+    }
+  }
+
+  // Form submission
+  document
+    .getElementById("reviewerForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const formData = {
+        name: document.getElementById("name").value,
+        expertise: document.getElementById("expertise").value,
+        strictness: parseFloat(document.getElementById("strictness").value),
+        detail_focus: parseFloat(document.getElementById("detail_focus").value),
+        innovation_bias: parseFloat(
+          document.getElementById("innovation_bias").value
+        ),
+        writing_standards: parseFloat(
+          document.getElementById("writing_standards").value
+        ),
+        methodology_rigor: parseFloat(
+          document.getElementById("methodology_rigor").value
+        ),
+        optimism: parseFloat(document.getElementById("optimism").value),
+      };
+
+      fetch("/api/reviewers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.reviewer) {
+            alert("Reviewer created successfully!");
+            loadUserReviewers();
+            document.getElementById("reviewerForm").reset();
+          } else {
+            alert("Error: " + (data.error || "Failed to create reviewer"));
+          }
+        });
+    });
+
+  let availableReviewers = [];
+  
+  // Load user's reviewers
+  function loadUserReviewers() {
+    fetch("/api/reviewers")
+      .then((response) => response.json())
+      .then((data) => {
+        const container = document.getElementById("reviewersList");
+        availableReviewers = data.reviewers || [];
+        
+        if (availableReviewers.length > 0) {
+          // Update reviewers list
+          container.innerHTML = availableReviewers
+            .map(
+              (r) =>
+                `<div class="border rounded p-2 mb-2">
+                    <strong>${r.name}</strong>
+                    <small class="text-secondary d-block">${r.expertise}</small>
+                    <button class="btn btn-sm btn-outline-danger mt-1" onclick="deleteReviewer('${r.id}')">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                </div>`
+            )
+            .join("");
+        } else {
+          container.innerHTML = '<p class="text-secondary">No custom reviewers yet</p>';
+        }
+        
+        // Update reviewer slots and load saved preferences
+        updateReviewerSlots();
+        loadConfiguration();
+      });
+  }
+  
+  // Update reviewer slots based on selected number
+  function updateReviewerSlots() {
+    const numReviewers = parseInt(document.getElementById('numReviewers').value);
+    const slotsContainer = document.getElementById('reviewerSlots');
+    
+    // Create default reviewers list (built-in personalities)
+    const defaultReviewers = [
+      { id: 'default_methodology', name: 'Dr. Methodology (Built-in)', expertise: 'methodology' },
+      { id: 'default_novelty', name: 'Prof. Innovation (Built-in)', expertise: 'novelty' },
+      { id: 'default_clarity', name: 'Dr. Clarity (Built-in)', expertise: 'clarity' },
+      { id: 'default_theory', name: 'Prof. Theory (Built-in)', expertise: 'theory' },
+      { id: 'default_application', name: 'Dr. Application (Built-in)', expertise: 'application' },
+      { id: 'default_balanced1', name: 'Dr. Balanced (Built-in)', expertise: 'balanced' },
+      { id: 'default_balanced2', name: 'Prof. Neutral (Built-in)', expertise: 'balanced' }
+    ];
+    
+    // Combine custom and default reviewers
+    const allReviewers = [...availableReviewers, ...defaultReviewers];
+    
+    let slotsHtml = '';
+    for (let i = 1; i <= numReviewers; i++) {
+      slotsHtml += `
+        <div class="mb-2">
+          <label class="form-label">Reviewer ${i}:</label>
+          <select class="form-select" id="slot_${i}">
+            <option value="">-- Select Reviewer --</option>
+            ${allReviewers.map(r => 
+              `<option value="${r.id}">${r.name}</option>`
+            ).join('')}
+          </select>
+        </div>
+      `;
+    }
+    
+    slotsContainer.innerHTML = slotsHtml;
+  }
+  
+  // Save reviewer configuration
+  function saveConfiguration() {
+    const numReviewers = parseInt(document.getElementById('numReviewers').value);
+    const reviewerSlots = [];
+    
+    // Get selected reviewer for each slot
+    for (let i = 1; i <= numReviewers; i++) {
+      const slotSelect = document.getElementById(`slot_${i}`);
+      if (slotSelect && slotSelect.value) {
+        reviewerSlots.push(slotSelect.value);
+      }
+    }
+    
+    // Validate that all slots are filled
+    if (reviewerSlots.length < numReviewers) {
+      alert(`Please assign reviewers to all ${numReviewers} slots before saving.`);
+      return;
+    }
+    
+    fetch('/api/reviewers/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        num_reviewers: numReviewers,
+        selected_reviewers: reviewerSlots
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message) {
+        alert('Configuration saved! This will be used for all future uploads.');
+      } else {
+        alert('Error: ' + (data.error || 'Failed to save configuration'));
+      }
+    });
+  }
+  
+  // Load saved configuration
+  function loadConfiguration() {
+    fetch('/api/reviewers/preferences')
+    .then(response => response.json())
+    .then(data => {
+      if (data.preferences) {
+        const prefs = data.preferences;
+        document.getElementById('numReviewers').value = prefs.num_reviewers || 5;
+        
+        // Update slots first
+        updateReviewerSlots();
+        
+        // Wait a bit for DOM to update, then set slot values
+        setTimeout(() => {
+          prefs.selected_reviewers.forEach((reviewerId, index) => {
+            const slotSelect = document.getElementById(`slot_${index + 1}`);
+            if (slotSelect) {
+              slotSelect.value = reviewerId;
+            }
+          });
+        }, 100);
+      }
+    });
+  }
+  
+  // Delete reviewer
+  function deleteReviewer(reviewerId) {
+    if (confirm('Are you sure you want to delete this reviewer?')) {
+      fetch(`/api/reviewers/${reviewerId}`, { method: 'DELETE' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          loadUserReviewers();
+        } else {
+          alert('Error: ' + (data.error || 'Failed to delete reviewer'));
+        }
+      });
+    }
+  }
+
+  // Load on page load
+  loadUserReviewers();
+</script>
+
+<script>
+  let previewTimeout;
+
+  function getPreview() {
+    const previewText = document.getElementById("preview-text");
+    previewText.innerHTML =
+      '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+    const personality = {
+      strictness: parseFloat(document.getElementById("strictness").value),
+      optimism: parseFloat(document.getElementById("optimism").value),
+      innovation_bias: parseFloat(
+        document.getElementById("innovation_bias").value
+      ),
+      writing_standards: parseFloat(
+        document.getElementById("writing_standards").value
+      ),
+    };
+
+    // This would call a new API endpoint like /api/reviewers/preview
+    // For demonstration, we'll simulate it.
+    clearTimeout(previewTimeout);
+    previewTimeout = setTimeout(() => {
+      let text = "This paper shows promise. ";
+      if (personality.strictness > 0.7)
+        text +=
+          "However, the methodology has significant flaws that must be addressed. ";
+      if (personality.optimism > 0.7)
+        text +=
+          "I believe with some work, this could be a strong contribution. ";
+      if (personality.innovation_bias > 0.7)
+        text += "The novel approach is particularly exciting. ";
+      if (personality.writing_standards > 0.7)
+        text += "The manuscript needs a thorough copy-edit for clarity. ";
+      if (text === "This paper shows promise. ")
+        text = "A balanced and fair assessment of the work's quality.";
+
+      previewText.textContent = text;
+    }, 500);
+  }
+
+  document
+    .querySelectorAll('input[type="range"]')
+    .forEach((slider) => slider.addEventListener("input", getPreview));
+</script>
+
+<!-- Built-in Reviewers Info Modal -->
+<div class="modal fade" id="reviewerInfoModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-users me-2"></i>Built-in Reviewer Personalities</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card mb-3">
+              <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="fas fa-microscope me-2"></i>Dr. Methodology</h6>
+              </div>
+              <div class="card-body">
+                <p><strong>Focus:</strong> Experimental design & statistical rigor</p>
+                <p><strong>Personality:</strong> Highly strict about methodology, demands proper controls and statistical analysis</p>
+                <p><strong>Typical feedback:</strong> "The sample size is insufficient" or "Controls are missing"</p>
+              </div>
+            </div>
+            
+            <div class="card mb-3">
+              <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Prof. Innovation</h6>
+              </div>
+              <div class="card-body">
+                <p><strong>Focus:</strong> Novelty & creative approaches</p>
+                <p><strong>Personality:</strong> Loves new ideas, rewards innovation over tradition</p>
+                <p><strong>Typical feedback:</strong> "This novel approach is exciting" or "Needs more innovation"</p>
+              </div>
+            </div>
+            
+            <div class="card mb-3">
+              <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-comment me-2"></i>Dr. Clarity</h6>
+              </div>
+              <div class="card-body">
+                <p><strong>Focus:</strong> Writing quality & communication</p>
+                <p><strong>Personality:</strong> Perfectionist about grammar, structure, and readability</p>
+                <p><strong>Typical feedback:</strong> "Unclear writing" or "Excellent presentation"</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="card mb-3">
+              <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="fas fa-book me-2"></i>Prof. Theory</h6>
+              </div>
+              <div class="card-body">
+                <p><strong>Focus:</strong> Theoretical foundations & concepts</p>
+                <p><strong>Personality:</strong> Values deep theoretical grounding and conceptual rigor</p>
+                <p><strong>Typical feedback:</strong> "Weak theoretical foundation" or "Strong conceptual framework"</p>
+              </div>
+            </div>
+            
+            <div class="card mb-3">
+              <div class="card-header bg-danger text-white">
+                <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Dr. Application</h6>
+              </div>
+              <div class="card-body">
+                <p><strong>Focus:</strong> Practical impact & real-world applications</p>
+                <p><strong>Personality:</strong> Wants to see practical value and industry relevance</p>
+                <p><strong>Typical feedback:</strong> "Limited practical impact" or "Great real-world applications"</p>
+              </div>
+            </div>
+            
+            <div class="card mb-3">
+              <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0"><i class="fas fa-balance-scale me-2"></i>Dr. Balanced & Prof. Neutral</h6>
+              </div>
+              <div class="card-body">
+                <p><strong>Focus:</strong> Fair, balanced assessment</p>
+                <p><strong>Personality:</strong> Moderate in all aspects, provides balanced feedback</p>
+                <p><strong>Typical feedback:</strong> "Overall solid work with room for improvement"</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="alert alert-info mt-3">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Tip:</strong> Mix different personality types for comprehensive reviews. For example, use Dr. Methodology + Prof. Innovation + Dr. Clarity for a well-rounded assessment.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

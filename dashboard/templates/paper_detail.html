@@ -1,0 +1,294 @@
+{% extends "base.html" %} {% block title %}{{ paper.title }} - PeerNet++{%
+endblock %} {% block extra_css %}
+<style>
+  .formatted-text {
+    line-height: 1.6;
+  }
+
+  .formatted-text strong {
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .section-header {
+    color: var(--primary);
+    font-weight: 700;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+  }
+
+  .review-feedback {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    border-left: 3px solid var(--primary);
+    line-height: 1.6;
+  }
+</style>
+{% endblock %} {% block content %}
+<!-- Page Header -->
+<div class="page-header animate-fade-in">
+  <div class="d-flex justify-content-between align-items-start">
+    <div>
+      <h1 class="page-title">{{ paper.title }}</h1>
+      <p class="page-subtitle">
+        <i class="fas fa-users me-1"></i>
+        {{ paper.authors|join(', ') if paper.authors else 'Unknown authors' }}
+      </p>
+    </div>
+    <a href="/papers" class="btn btn-secondary">
+      <i class="fas fa-arrow-left me-2"></i>Back
+    </a>
+  </div>
+</div>
+
+<!-- Decision Card -->
+{% if consensus %}
+<div class="card mb-4 animate-fade-in">
+  <div class="card-body text-center">
+    {% if consensus.decision == 'Accept' %}
+    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+    <h2 class="text-success">ACCEPTED</h2>
+    <p class="lead">
+      This paper meets publication standards with an overall score of {{
+      consensus.final_scores.overall }}/10.
+    </p>
+    <div class="alert alert-success formatted-text">
+      <strong>Overall Assessment:</strong>
+      <div class="mt-2">
+        {{ consensus.overall_explanation|safe or "The AI reviewers found this paper demonstrates sufficient novelty, methodological rigor, clarity, and relevance. All criteria exceeded the acceptance threshold of 7.5/10." }}
+      </div>
+    </div>
+    {% elif consensus.decision == 'Reject' %}
+    <i class="fas fa-times-circle fa-4x text-danger mb-3"></i>
+    <h2 class="text-danger">REJECTED</h2>
+    <p class="lead">
+      This paper does not meet publication standards with a score of {{
+      consensus.final_scores.overall }}/10.
+    </p>
+    <div class="alert alert-danger formatted-text">
+      <strong>Overall Assessment:</strong>
+      <div class="mt-2">
+        {{ consensus.overall_explanation|safe or "Critical issues were identified in methodology, novelty, clarity, or relevance. The score fell below the acceptance threshold of 6.0/10." }}
+      </div>
+    </div>
+    {% else %}
+    <i class="fas fa-edit fa-4x text-warning mb-3"></i>
+    <h2 class="text-warning">NEEDS REVISION</h2>
+    <p class="lead">
+      This paper has potential but requires improvements. Score: {{
+      consensus.final_scores.overall }}/10.
+    </p>
+    <div class="alert alert-warning formatted-text">
+      <strong>Overall Assessment:</strong>
+      <div class="mt-2">
+        {{ consensus.overall_explanation|safe or "The paper shows merit but specific issues need addressing. With revisions, this work could meet publication standards." }}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row mt-4">
+      <div class="col-md-3">
+        <h4 class="text-primary">{{ consensus.final_scores.overall }}</h4>
+        <small class="text-secondary">Overall Score</small>
+      </div>
+      <div class="col-md-3">
+        <h4 class="text-primary">{{ (consensus.confidence * 100)|round }}%</h4>
+        <small class="text-secondary">Confidence</small>
+      </div>
+      <div class="col-md-3">
+        <h4 class="text-primary">
+          {{ consensus.negotiation_rounds|length if consensus.negotiation_rounds
+          else 0 }}
+        </h4>
+        <small class="text-secondary">Review Rounds</small>
+      </div>
+      <div class="col-md-3">
+        <h4 class="text-primary">{{ reviews|length }}</h4>
+        <small class="text-secondary">Reviewers</small>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+
+
+<div class="row">
+  <!-- Paper Information -->
+  <div class="col-lg-8">
+    <div class="card mb-4 animate-fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-info-circle me-2"></i>
+          Paper Information
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Paper ID:</strong> <code>{{ paper.paper_id }}</code></p>
+            <p><strong>Year:</strong> {{ paper.year or 'Unknown' }}</p>
+          </div>
+          <div class="col-md-6">
+            <p>
+              <strong>Source:</strong>
+              <span class="badge bg-primary">{{ paper.source or 'JSON' }}</span>
+            </p>
+            <p><strong>DOI:</strong> {{ paper.doi or 'Not available' }}</p>
+          </div>
+        </div>
+
+        {% if paper.abstract %}
+        <hr />
+        <h6>Abstract</h6>
+        <p class="text-justify">{{ paper.abstract }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Reviews -->
+    <div class="card animate-fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-comments me-2"></i>
+          AI Reviewer Analysis ({{ reviews|length }} Reviews)
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if reviews %} {% for review in reviews %}
+        <div class="border rounded p-3 mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="text-primary mb-0">
+              <i class="fas fa-user-graduate me-2"></i>
+              {{ review.reviewer_id }}
+            </h6>
+            <span class="badge bg-secondary">
+              {% if 'methodology' in review.reviewer_id %}Methodology Expert {%
+              elif 'novelty' in review.reviewer_id %}Innovation Specialist {%
+              elif 'clarity' in review.reviewer_id %}Communication Expert {%
+              elif 'theory' in review.reviewer_id %}Theory Specialist {% else
+              %}AI Reviewer{% endif %}
+            </span>
+          </div>
+
+          <div class="row text-center mb-3">
+            <div class="col">
+              <h5 class="text-primary">{{ review.scores.novelty }}</h5>
+              <small class="text-secondary">Novelty</small>
+            </div>
+            <div class="col">
+              <h5 class="text-primary">{{ review.scores.clarity }}</h5>
+              <small class="text-secondary">Clarity</small>
+            </div>
+            <div class="col">
+              <h5 class="text-primary">{{ review.scores.methodology }}</h5>
+              <small class="text-secondary">Method</small>
+            </div>
+            <div class="col">
+              <h5 class="text-primary">{{ review.scores.relevance }}</h5>
+              <small class="text-secondary">Relevance</small>
+            </div>
+            <div class="col">
+              <h5 class="text-success">{{ review.scores.overall }}</h5>
+              <small class="text-secondary">Overall</small>
+            </div>
+          </div>
+
+          <div class="alert alert-light">
+            <h6><i class="fas fa-quote-left me-2"></i>Detailed Feedback</h6>
+            <div class="mb-0 formatted-text">
+              {{ review.written_feedback|safe }}
+            </div>
+          </div>
+        </div>
+        {% endfor %} {% else %}
+        <div class="text-center py-5">
+          <i class="fas fa-robot fa-3x text-secondary mb-3"></i>
+          <h5>No Reviews Yet</h5>
+          <p class="text-secondary">
+            This paper hasn't been reviewed by AI agents.
+          </p>
+          <form method="POST" action="/paper/{{ paper.paper_id }}/simulate">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-play me-2"></i>Start AI Review
+            </button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="col-lg-4">
+    <!-- Status -->
+    <div class="card mb-4 animate-fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-line me-2"></i>
+          Status
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if consensus %}
+        <span class="badge bg-success mb-2">
+          <i class="fas fa-check me-1"></i>Review Complete
+        </span>
+        {% else %}
+        <span class="badge bg-warning mb-2">
+          <i class="fas fa-clock me-1"></i>Pending Review
+        </span>
+        {% endif %}
+
+        <p class="mb-2">
+          <strong>Reviews:</strong> {{ reviews|length }} completed
+        </p>
+
+        {% if consensus %}
+        <p class="mb-0"><strong>Decision:</strong> {{ consensus.decision }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card animate-fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-cogs me-2"></i>
+          Actions
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if not consensus %}
+        <form
+          method="POST"
+          action="/paper/{{ paper.paper_id }}/simulate"
+          class="mb-2"
+        >
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-robot me-2"></i>Start Review
+          </button>
+        </form>
+        {% endif %}
+
+        <a href="/api/papers/{{ paper.paper_id }}/export-pdf" class="btn btn-success w-100 mb-2">
+          <i class="fas fa-file-pdf me-2"></i>Export PDF Report
+        </a>
+        
+        <a href="/papers" class="btn btn-secondary w-100">
+          <i class="fas fa-list me-2"></i>All Papers
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+// Chart disabled to prevent text rendering issues
+console.log('Chart rendering disabled');
+</script>
+{% endblock %}
