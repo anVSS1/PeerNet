@@ -1,212 +1,211 @@
-{% extends "base.html" %}
-{% block title %}PeerNet++ Dashboard{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}PeerNet++ Dashboard{% endblock %} {%
+block content %}
 <!-- Page Header -->
 <div class="page-header animate-fade-in">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="page-title">
-                <i class="fas fa-chart-line me-2"></i>
-                Dashboard
-            </h1>
-            <p class="page-subtitle">
-                AI-Powered Academic Peer Review System
-            </p>
-        </div>
-        <span class="badge bg-success fs-6">
-            <i class="fas fa-circle me-1"></i>System Online
-        </span>
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h1 class="page-title">
+        <i class="fas fa-chart-line me-2"></i>
+        Dashboard
+      </h1>
+      <p class="page-subtitle">AI-Powered Academic Peer Review System</p>
     </div>
+    <span class="badge bg-success fs-6">
+      <i class="fas fa-circle me-1"></i>System Online
+    </span>
+  </div>
 </div>
 
 <!-- Statistics Cards -->
 <div class="row g-4 mb-4">
-    <div class="col-lg-3 col-md-6">
-        <div class="card text-center animate-fade-in">
-            <div class="card-body">
-                <i class="fas fa-file-alt fa-2x text-primary mb-3"></i>
-                <h3 class="text-primary">{{ total_papers }}</h3>
-                <p class="text-secondary mb-0">Total Papers</p>
-            </div>
-        </div>
+  <div class="col-lg-3 col-md-6">
+    <div class="card text-center animate-fade-in">
+      <div class="card-body">
+        <i class="fas fa-file-alt fa-2x text-primary mb-3"></i>
+        <h3 class="text-primary">{{ total_papers }}</h3>
+        <p class="text-secondary mb-0">Total Papers</p>
+      </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card text-center animate-fade-in">
-            <div class="card-body">
-                <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
-                <h3 class="text-success">{{ reviewed_papers }}</h3>
-                <p class="text-secondary mb-0">Reviewed</p>
-            </div>
-        </div>
+  </div>
+  <div class="col-lg-3 col-md-6">
+    <div class="card text-center animate-fade-in">
+      <div class="card-body">
+        <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+        <h3 class="text-success">{{ reviewed_papers }}</h3>
+        <p class="text-secondary mb-0">Reviewed</p>
+      </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card text-center animate-fade-in">
-            <div class="card-body">
-                <i class="fas fa-clock fa-2x text-warning mb-3"></i>
-                <h3 class="text-warning">{{ pending_papers }}</h3>
-                <p class="text-secondary mb-0">Pending</p>
-            </div>
-        </div>
+  </div>
+  <div class="col-lg-3 col-md-6">
+    <div class="card text-center animate-fade-in">
+      <div class="card-body">
+        <i class="fas fa-clock fa-2x text-warning mb-3"></i>
+        <h3 class="text-warning">{{ pending_papers }}</h3>
+        <p class="text-secondary mb-0">Pending</p>
+      </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card text-center animate-fade-in">
-            <div class="card-body">
-                <i class="fas fa-percentage fa-2x text-primary mb-3"></i>
-                <h3 class="text-primary">{{ "%.0f"|format((reviewed_papers / total_papers * 100) if total_papers > 0 else 0) }}%</h3>
-                <p class="text-secondary mb-0">Complete</p>
-            </div>
-        </div>
+  </div>
+  <div class="col-lg-3 col-md-6">
+    <div class="card text-center animate-fade-in">
+      <div class="card-body">
+        <i class="fas fa-percentage fa-2x text-primary mb-3"></i>
+        <h3 class="text-primary">
+          {{ "%.0f"|format((reviewed_papers / total_papers * 100) if
+          total_papers > 0 else 0) }}%
+        </h3>
+        <p class="text-secondary mb-0">Complete</p>
+      </div>
     </div>
+  </div>
 </div>
 
 <div class="row">
-    <!-- Chart Section -->
-    <div class="col-lg-8">
-        <div class="card animate-fade-in">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-chart-pie me-2"></i>
-                    Review Status
-                </h5>
-            </div>
-            <div class="card-body">
-                <canvas id="statusChart" height="300"></canvas>
-            </div>
-        </div>
+  <!-- Chart Section -->
+  <div class="col-lg-8">
+    <div class="card animate-fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-pie me-2"></i>
+          Review Status
+        </h5>
+      </div>
+      <div class="card-body">
+        <canvas id="statusChart" height="300"></canvas>
+      </div>
     </div>
+  </div>
 
-    <!-- Recent Papers -->
-    <div class="col-lg-4">
-        <div class="card animate-fade-in">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-history me-2"></i>
-                    Recent Papers
-                </h5>
+  <!-- Recent Papers -->
+  <div class="col-lg-4">
+    <div class="card animate-fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-history me-2"></i>
+          Recent Papers
+        </h5>
+      </div>
+      <div class="card-body">
+        {% if recent_papers %} {% for paper in recent_papers[:5] %}
+        <div class="d-flex align-items-start mb-3 p-2 border rounded">
+          <div class="flex-grow-1">
+            <h6 class="mb-1">
+              {{ paper.title[:40] }}{% if paper.title|length > 40 %}...{% endif
+              %}
+            </h6>
+            <small class="text-secondary">
+              {{ paper.authors[:2]|join(', ') if paper.authors else 'Unknown' }}
+            </small>
+            <div class="mt-1">
+              <span class="badge bg-primary">{{ paper.source or 'JSON' }}</span>
             </div>
-            <div class="card-body">
-                {% if recent_papers %}
-                    {% for paper in recent_papers[:5] %}
-                    <div class="d-flex align-items-start mb-3 p-2 border rounded">
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1">{{ paper.title[:40] }}{% if paper.title|length > 40 %}...{% endif %}</h6>
-                            <small class="text-secondary">
-                                {{ paper.authors[:2]|join(', ') if paper.authors else 'Unknown' }}
-                            </small>
-                            <div class="mt-1">
-                                <span class="badge bg-primary">{{ paper.source or 'JSON' }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-file-plus fa-2x text-secondary mb-3"></i>
-                        <p class="text-secondary">No papers yet</p>
-                        <a href="/upload" class="btn btn-primary btn-sm">Upload Paper</a>
-                    </div>
-                {% endif %}
-            </div>
+          </div>
         </div>
+        {% endfor %} {% else %}
+        <div class="text-center py-4">
+          <i class="fas fa-file-plus fa-2x text-secondary mb-3"></i>
+          <p class="text-secondary">No papers yet</p>
+          <a href="/upload" class="btn btn-primary btn-sm">Upload Paper</a>
+        </div>
+        {% endif %}
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Quick Actions -->
 <div class="row mt-4">
-    <div class="col-lg-4">
-        <div class="card animate-fade-in">
-            <div class="card-body text-center">
-                <i class="fas fa-code fa-2x text-primary mb-3"></i>
-                <h5>JSON Upload</h5>
-                <p class="text-secondary">Upload structured paper data</p>
-                <a href="/upload/json" class="btn btn-primary">Upload JSON</a>
-            </div>
-        </div>
+  <div class="col-lg-4">
+    <div class="card animate-fade-in">
+      <div class="card-body text-center">
+        <i class="fas fa-code fa-2x text-primary mb-3"></i>
+        <h5>JSON Upload</h5>
+        <p class="text-secondary">Upload structured paper data</p>
+        <a href="/upload/json" class="btn btn-primary">Upload JSON</a>
+      </div>
     </div>
-    <div class="col-lg-4">
-        <div class="card animate-fade-in">
-            <div class="card-body text-center">
-                <i class="fas fa-file-pdf fa-2x text-success mb-3"></i>
-                <h5>PDF Upload</h5>
-                <p class="text-secondary">Extract from PDF files</p>
-                <a href="/upload/pdf" class="btn btn-success">Upload PDF</a>
-            </div>
-        </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card animate-fade-in">
+      <div class="card-body text-center">
+        <i class="fas fa-file-pdf fa-2x text-success mb-3"></i>
+        <h5>PDF Upload</h5>
+        <p class="text-secondary">Extract from PDF files</p>
+        <a href="/upload/pdf" class="btn btn-success">Upload PDF</a>
+      </div>
     </div>
-    <div class="col-lg-4">
-        <div class="card animate-fade-in">
-            <div class="card-body text-center">
-                <i class="fas fa-search fa-2x text-warning mb-3"></i>
-                <h5>OpenAlex</h5>
-                <p class="text-secondary">Fetch from database</p>
-                <a href="/upload/openalex" class="btn btn-warning">Fetch Paper</a>
-            </div>
-        </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card animate-fade-in">
+      <div class="card-body text-center">
+        <i class="fas fa-search fa-2x text-warning mb-3"></i>
+        <h5>API Fetch</h5>
+        <p class="text-secondary">Fetch from database</p>
+        <a href="/upload/api" class="btn btn-warning">Fetch Paper</a>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Analytics -->
 <div class="row mt-4">
-    <div class="col-12">
-        <div class="card animate-fade-in">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-chart-bar me-2"></i>
-                    Review Analytics
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    {% set accepted = consensus_data|selectattr('decision', 'equalto', 'Accept')|list|length %}
-                    {% set rejected = consensus_data|selectattr('decision', 'equalto', 'Reject')|list|length %}
-                    {% set revisions = consensus_data|length - accepted - rejected %}
-                    
-                    <div class="col-md-3">
-                        <h4 class="text-success">{{ accepted }}</h4>
-                        <p class="text-secondary">Accepted</p>
-                    </div>
-                    <div class="col-md-3">
-                        <h4 class="text-danger">{{ rejected }}</h4>
-                        <p class="text-secondary">Rejected</p>
-                    </div>
-                    <div class="col-md-3">
-                        <h4 class="text-warning">{{ revisions }}</h4>
-                        <p class="text-secondary">Revisions</p>
-                    </div>
-                    <div class="col-md-3">
-                        <h4 class="text-primary">5</h4>
-                        <p class="text-secondary">AI Reviewers</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+  <div class="col-12">
+    <div class="card animate-fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-bar me-2"></i>
+          Review Analytics
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          {% set accepted = consensus_data|selectattr('decision', 'equalto',
+          'Accept')|list|length %} {% set rejected =
+          consensus_data|selectattr('decision', 'equalto', 'Reject')|list|length
+          %} {% set revisions = consensus_data|length - accepted - rejected %}
 
-{% block extra_js %}
+          <div class="col-md-3">
+            <h4 class="text-success">{{ accepted }}</h4>
+            <p class="text-secondary">Accepted</p>
+          </div>
+          <div class="col-md-3">
+            <h4 class="text-danger">{{ rejected }}</h4>
+            <p class="text-secondary">Rejected</p>
+          </div>
+          <div class="col-md-3">
+            <h4 class="text-warning">{{ revisions }}</h4>
+            <p class="text-secondary">Revisions</p>
+          </div>
+          <div class="col-md-3">
+            <h4 class="text-primary">5</h4>
+            <p class="text-secondary">AI Reviewers</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
 <script>
-const ctx = document.getElementById('statusChart').getContext('2d');
-new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Reviewed', 'Pending'],
-        datasets: [{
-            data: [{{ reviewed_papers }}, {{ pending_papers }}],
-            backgroundColor: ['#059669', '#d97706'],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
-});
+  const ctx = document.getElementById('statusChart').getContext('2d');
+  new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+          labels: ['Reviewed', 'Pending'],
+          datasets: [{
+              data: [{{ reviewed_papers }}, {{ pending_papers }}],
+              backgroundColor: ['#059669', '#d97706'],
+              borderWidth: 0
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+              legend: {
+                  position: 'bottom'
+              }
+          }
+      }
+  });
 </script>
 {% endblock %}

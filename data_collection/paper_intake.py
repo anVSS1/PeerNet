@@ -52,17 +52,76 @@ class PaperIntake:
                 logger.warning(f"Could not load user reviewer preferences: {str(e)}")
         
         try:
+            # Emit initial analysis progress
+            from extensions import socketio
+            if user_id:
+                socketio.emit('analysis_progress', {
+                    'paper_id': 'temp',
+                    'step': 'extraction',
+                    'progress': 10,
+                    'message': f'Starting {source} processing...',
+                    'status': 'processing'
+                }, room=str(user_id))
+            
             if source == 'pdf':
+                if user_id:
+                    socketio.emit('analysis_progress', {
+                        'paper_id': 'temp',
+                        'step': 'extraction',
+                        'progress': 30,
+                        'message': 'Extracting text from PDF...',
+                        'status': 'processing'
+                    }, room=str(user_id))
                 paper_data = self._process_pdf(data)
             elif source == 'arxiv':
+                if user_id:
+                    socketio.emit('analysis_progress', {
+                        'paper_id': 'temp',
+                        'step': 'extraction',
+                        'progress': 30,
+                        'message': 'Fetching paper from arXiv...',
+                        'status': 'processing'
+                    }, room=str(user_id))
                 paper_data = self._process_arxiv(data)
             elif source == 'pubmed':
+                if user_id:
+                    socketio.emit('analysis_progress', {
+                        'paper_id': 'temp',
+                        'step': 'extraction',
+                        'progress': 30,
+                        'message': 'Fetching paper from PubMed...',
+                        'status': 'processing'
+                    }, room=str(user_id))
                 paper_data = self._process_pubmed(data)
             elif source == 'semantic':
+                if user_id:
+                    socketio.emit('analysis_progress', {
+                        'paper_id': 'temp',
+                        'step': 'extraction',
+                        'progress': 30,
+                        'message': 'Fetching paper from Semantic Scholar...',
+                        'status': 'processing'
+                    }, room=str(user_id))
                 paper_data = self._process_semantic(data)
             elif source == 'openalex':
+                if user_id:
+                    socketio.emit('analysis_progress', {
+                        'paper_id': 'temp',
+                        'step': 'extraction',
+                        'progress': 30,
+                        'message': 'Fetching paper from OpenAlex...',
+                        'status': 'processing'
+                    }, room=str(user_id))
                 paper_data = self._process_openalex(data)
             elif source == 'json':
+                if user_id:
+                    socketio.emit('analysis_progress', {
+                        'paper_id': 'temp',
+                        'step': 'extraction',
+                        'progress': 30,
+                        'message': 'Parsing JSON data...',
+                        'status': 'processing'
+                    }, room=str(user_id))
                 paper_data = self._process_json(data)
             elif source == 'form': # Handling form data from single PDF upload
                 paper_data = self._process_pdf(data['file_path'])
@@ -75,11 +134,30 @@ class PaperIntake:
             if not paper_data:
                 return None
 
+            # Emit metadata parsing progress
+            if user_id:
+                socketio.emit('analysis_progress', {
+                    'paper_id': paper_data.get('paper_id', 'temp'),
+                    'step': 'metadata',
+                    'progress': 50,
+                    'message': 'Parsing metadata and document structure...',
+                    'status': 'processing'
+                }, room=str(user_id))
+
             # Set user_id if provided
             if user_id:
                 paper_data['user_id'] = user_id
 
             # Generate embeddings (optional)
+            if user_id:
+                socketio.emit('analysis_progress', {
+                    'paper_id': paper_data.get('paper_id', 'temp'),
+                    'step': 'embedding',
+                    'progress': 60,
+                    'message': 'Generating embeddings for semantic search...',
+                    'status': 'processing'
+                }, room=str(user_id))
+            
             if self.embedding_generator:
                 try:
                     embedding = self.embedding_generator.generate_embedding(paper_data)
@@ -97,7 +175,15 @@ class PaperIntake:
                 return existing_paper
 
             # Emit processing notification
-            from extensions import socketio
+            if user_id:
+                socketio.emit('analysis_progress', {
+                    'paper_id': paper_data['paper_id'],
+                    'step': 'processing',
+                    'progress': 70,
+                    'message': 'Creating paper record...',
+                    'status': 'processing'
+                }, room=str(user_id))
+            
             socketio.emit('upload_progress', {
                 'paper_id': paper_data['paper_id'],
                 'paper_title': paper_data.get('title', 'Unknown'),
@@ -111,6 +197,15 @@ class PaperIntake:
             logger.info("Successfully intaken paper: %s", paper.paper_id)
             
             # Emit success notification
+            if user_id:
+                socketio.emit('analysis_progress', {
+                    'paper_id': paper.paper_id,
+                    'step': 'review',
+                    'progress': 80,
+                    'message': 'Paper record created successfully!',
+                    'status': 'success'
+                }, room=str(user_id))
+            
             socketio.emit('upload_progress', {
                 'paper_id': paper.paper_id,
                 'paper_title': paper.title,
@@ -121,10 +216,28 @@ class PaperIntake:
             # Auto-trigger review simulation if enabled
             if auto_review:
                 try:
+                    if user_id:
+                        socketio.emit('analysis_progress', {
+                            'paper_id': paper.paper_id,
+                            'step': 'review',
+                            'progress': 90,
+                            'message': 'Initializing AI reviewer agents...',
+                            'status': 'processing'
+                        }, room=str(user_id))
+                    
                     from simulation.review_simulation import ReviewSimulation
                     simulation = ReviewSimulation()
                     simulation.simulate_paper_review(paper, num_reviewers=num_reviewers, custom_reviewer_ids=custom_reviewer_ids)
                     logger.info("Auto-review completed for paper: %s", paper.paper_id)
+                    
+                    if user_id:
+                        socketio.emit('analysis_progress', {
+                            'paper_id': paper.paper_id,
+                            'step': 'review',
+                            'progress': 100,
+                            'message': 'Analysis complete!',
+                            'status': 'success'
+                        }, room=str(user_id))
                 except Exception as e:
                     logger.error("Auto-review failed for paper %s: %s", paper.paper_id, str(e))
                     # Emit error notification for review failure

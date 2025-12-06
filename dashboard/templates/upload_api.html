@@ -1,107 +1,161 @@
-{% extends "base.html" %}
-{% block title %}API Fetch - PeerNet++{% endblock %}
-
+{% extends "base.html" %} {% block title %}API Fetch - PeerNet++{% endblock %}
 {% block content %}
 <div class="page-header animate-fade-in">
-    <h1 class="page-title">
-        <i class="fas fa-cloud-download-alt me-2"></i>
-        API Fetch Papers
-    </h1>
-    <p class="page-subtitle">
-        Fetch papers directly from academic databases using IDs or URLs
-    </p>
+  <h1 class="page-title">
+    <i class="fas fa-cloud-download-alt me-2"></i>
+    API Fetch Papers
+  </h1>
+  <p class="page-subtitle">
+    Fetch papers directly from academic databases using IDs or URLs
+  </p>
 </div>
 
 <div class="row">
-    <div class="col-lg-8">
-        <div class="card animate-fade-in">
-            <div class="card-header">
-                <h5 class="mb-0">Select Platform & Enter ID</h5>
+  <div class="col-lg-8">
+    <div class="card animate-fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">Select Platform & Enter ID</h5>
+      </div>
+      <div class="card-body">
+        <form id="apiForm">
+          <div class="mb-4">
+            <label class="form-label">Academic Platform</label>
+            <div class="row g-3" id="platformSelection">
+              <div class="col-md-6">
+                <div class="platform-card" data-platform="arxiv">
+                  <img
+                    src="https://arxiv.org/favicon.ico"
+                    alt="arXiv"
+                    class="platform-logo"
+                  />
+                  <div class="platform-info">
+                    <h6>arXiv</h6>
+                    <small>Physics, Math, CS</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="platform-card" data-platform="pubmed">
+                  <img
+                    src="https://pubmed.ncbi.nlm.nih.gov/favicon.ico"
+                    alt="PubMed"
+                    class="platform-logo"
+                  />
+                  <div class="platform-info">
+                    <h6>PubMed</h6>
+                    <small>Medicine, Life Sciences</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="platform-card" data-platform="semantic">
+                  <div class="platform-logo-text">SS</div>
+                  <div class="platform-info">
+                    <h6>Semantic Scholar</h6>
+                    <small>AI-Enhanced Metadata</small>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="card-body">
-                <form id="apiForm">
-                    <div class="mb-4">
-                        <label class="form-label">Academic Platform</label>
-                        <div class="row g-3" id="platformSelection">
-                            <div class="col-md-6">
-                                <div class="platform-card" data-platform="arxiv">
-                                    <img src="https://arxiv.org/favicon.ico" alt="arXiv" class="platform-logo">
-                                    <div class="platform-info">
-                                        <h6>arXiv</h6>
-                                        <small>Physics, Math, CS</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="platform-card" data-platform="pubmed">
-                                    <img src="https://pubmed.ncbi.nlm.nih.gov/favicon.ico" alt="PubMed" class="platform-logo">
-                                    <div class="platform-info">
-                                        <h6>PubMed</h6>
-                                        <small>Medicine, Life Sciences</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="platform-card" data-platform="semantic">
-                                    <div class="platform-logo-text">SS</div>
-                                    <div class="platform-info">
-                                        <h6>Semantic Scholar</h6>
-                                        <small>AI-Enhanced Metadata</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Paper ID or URL</label>
-                        <input type="text" class="form-control" id="paperId" placeholder="Enter ID or URL..." required>
-                        <div class="form-text" id="idHelp">Select a platform above to see ID format examples</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="autoReview" checked>
-                            <label class="form-check-label" for="autoReview">
-                                Start AI review automatically after fetch
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-warning" id="fetchBtn">
-                        <i class="fas fa-download me-2"></i>Fetch Paper
-                    </button>
-                    <a href="/upload" class="btn btn-secondary ms-2">
-                        <i class="fas fa-arrow-left me-2"></i>Back
-                    </a>
-                </form>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Paper ID or URL</label>
+            <input
+              type="text"
+              class="form-control"
+              id="paperId"
+              placeholder="Enter ID or URL..."
+              required
+            />
+            <div class="form-text" id="idHelp">
+              Select a platform above to see ID format examples
             </div>
-        </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="autoReview"
+                checked
+              />
+              <label class="form-check-label" for="autoReview">
+                Start AI review automatically after fetch
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-warning" id="fetchBtn">
+            <i class="fas fa-download me-2"></i>Fetch Paper
+          </button>
+          <a href="/upload" class="btn btn-secondary ms-2">
+            <i class="fas fa-arrow-left me-2"></i>Back
+          </a>
+        </form>
+      </div>
     </div>
-    
-    <div class="col-lg-4">
-        <div class="card animate-fade-in">
-            <div class="card-header">
-                <h5 class="mb-0">Platform Information</h5>
-            </div>
-            <div class="card-body" id="platformInfo">
-                <p class="text-muted">Select a platform to see details and ID format examples.</p>
-            </div>
-        </div>
-        
-        <div class="card animate-fade-in mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">Recent Fetches</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted small">Your recently fetched papers will appear here.</p>
-            </div>
-        </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card animate-fade-in">
+      <div class="card-header">
+        <h5 class="mb-0">Platform Information</h5>
+      </div>
+      <div class="card-body" id="platformInfo">
+        <p class="text-muted">
+          Select a platform to see details and ID format examples.
+        </p>
+      </div>
     </div>
+
+    <div class="card animate-fade-in mt-4">
+      <div class="card-header">
+        <h5 class="mb-0">Recent Fetches</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-muted small">
+          Your recently fetched papers will appear here.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Live Analysis Log -->
+<div class="row mt-4">
+  <div class="col-12">
+    <div
+      class="analysis-log-container animate-fade-in"
+      id="analysisLog"
+      style="display: none"
+    >
+      <div class="analysis-log-header">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-line me-2"></i>
+          Live Analysis Log
+        </h5>
+      </div>
+      <div class="analysis-log-content" id="logContent">
+        <div class="log-empty-state">
+          <i class="fas fa-clipboard-list"></i>
+          <p>Fetch a paper to see live analysis progress...</p>
+        </div>
+      </div>
+      <div class="analysis-progress-bar">
+        <div
+          class="analysis-progress-fill"
+          id="progressFill"
+          style="width: 0%"
+        ></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
-.platform-card {
+  .platform-card {
     border: 2px solid #e2e8f0;
     border-radius: 0.75rem;
     padding: 1rem;
@@ -111,27 +165,27 @@
     align-items: center;
     gap: 0.75rem;
     height: 80px;
-}
+  }
 
-.platform-card:hover {
+  .platform-card:hover {
     border-color: #f59e0b;
     background-color: rgba(245, 158, 11, 0.05);
     transform: translateY(-2px);
-}
+  }
 
-.platform-card.selected {
+  .platform-card.selected {
     border-color: #f59e0b;
     background-color: rgba(245, 158, 11, 0.1);
     box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
-}
+  }
 
-.platform-logo {
+  .platform-logo {
     width: 32px;
     height: 32px;
     object-fit: contain;
-}
+  }
 
-.platform-logo-text {
+  .platform-logo-text {
     width: 32px;
     height: 32px;
     background: #f59e0b;
@@ -142,136 +196,280 @@
     justify-content: center;
     font-weight: bold;
     font-size: 0.875rem;
-}
+  }
 
-.platform-info h6 {
+  .platform-info h6 {
     margin: 0;
     font-weight: 600;
-}
+  }
 
-.platform-info small {
+  .platform-info small {
     color: #64748b;
-}
+  }
 </style>
 
 <script>
-const platformData = {
+  // Live Analysis Log Manager
+  class AnalysisLogManager {
+    constructor() {
+      this.logContainer = document.getElementById("analysisLog");
+      this.logContent = document.getElementById("logContent");
+      this.progressFill = document.getElementById("progressFill");
+      this.logs = [];
+      this.progress = 0;
+    }
+
+    show() {
+      this.logContainer.style.display = "block";
+      this.clear();
+    }
+
+    hide() {
+      this.logContainer.style.display = "none";
+    }
+
+    clear() {
+      this.logs = [];
+      this.progress = 0;
+      this.logContent.innerHTML = "";
+      this.progressFill.style.width = "0%";
+    }
+
+    addLog(message, type = "info", icon = "fa-info-circle") {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement("div");
+      logEntry.className = `log-entry log-${type}`;
+      logEntry.innerHTML = `
+            <div class="log-entry-time">
+                <i class="fas fa-clock me-1"></i>${timestamp}
+            </div>
+            <div class="log-entry-message">
+                <i class="fas ${icon} log-entry-icon"></i>
+                ${message}
+            </div>
+        `;
+
+      this.logContent.appendChild(logEntry);
+      this.logContent.scrollTop = this.logContent.scrollHeight;
+      this.logs.push({ message, type, timestamp });
+    }
+
+    updateProgress(percent) {
+      this.progress = Math.min(100, Math.max(0, percent));
+      this.progressFill.style.width = this.progress + "%";
+    }
+
+    setComplete() {
+      this.updateProgress(100);
+      setTimeout(() => {
+        this.addLog("Analysis complete! ✓", "success", "fa-check-circle");
+      }, 500);
+    }
+  }
+
+  const analysisLog = new AnalysisLogManager();
+  let uploadInProgress = false;
+  let uploadedPaperTitle = "";
+
+  // Listen for backend analysis progress events
+  if (typeof socket !== "undefined") {
+    socket.on("analysis_progress", function (data) {
+      if (!uploadInProgress) return;
+
+      const iconMap = {
+        extraction: "fa-download",
+        metadata: "fa-cogs",
+        embedding: "fa-brain",
+        review: "fa-robot",
+        processing: "fa-spinner",
+        success: "fa-check-circle",
+        error: "fa-exclamation-triangle",
+        info: "fa-info-circle",
+      };
+
+      const icon =
+        iconMap[data.step] || iconMap[data.status] || "fa-info-circle";
+      analysisLog.addLog(data.message, data.status, icon);
+      analysisLog.updateProgress(data.progress);
+
+      if (data.progress >= 100 && data.status === "success") {
+        setTimeout(() => {
+          showUploadSuccess(uploadedPaperTitle);
+          setTimeout(() => {
+            uploadInProgress = false;
+            window.location.href = "/papers";
+          }, 1500);
+        }, 500);
+      }
+    });
+  }
+
+  const platformData = {
     arxiv: {
-        name: 'arXiv',
-        description: 'Open access preprint repository - perfect for testing papers before journal submission.',
-        examples: ['2301.12345', '1706.03762', 'cs.AI/0301001'],
-        placeholder: 'e.g., 2301.12345 or https://arxiv.org/abs/2301.12345',
-        help: 'Enter arXiv ID (e.g., 2301.12345) or full arXiv URL'
+      name: "arXiv",
+      description:
+        "Open access preprint repository - perfect for testing papers before journal submission.",
+      examples: ["2301.12345", "1706.03762", "cs.AI/0301001"],
+      placeholder: "e.g., 2301.12345 or https://arxiv.org/abs/2301.12345",
+      help: "Enter arXiv ID (e.g., 2301.12345) or full arXiv URL",
     },
     pubmed: {
-        name: 'PubMed',
-        description: 'Biomedical literature database - analyze published papers for review patterns.',
-        examples: ['12345678', 'PMC1234567'],
-        placeholder: 'e.g., 12345678 or PMC1234567',
-        help: 'Enter PubMed ID (PMID) or PMC ID'
+      name: "PubMed",
+      description:
+        "Biomedical literature database - analyze published papers for review patterns.",
+      examples: ["12345678", "PMC1234567"],
+      placeholder: "e.g., 12345678 or PMC1234567",
+      help: "Enter PubMed ID (PMID) or PMC ID",
     },
 
     semantic: {
-        name: 'Semantic Scholar',
-        description: 'AI-powered search with rich metadata - works with multiple ID types.',
-        examples: ['649def34f8be52c8b66281af98ae884c09aef38b', 'arXiv:1706.03762'],
-        placeholder: 'e.g., paper ID, DOI, or arXiv ID',
-        help: 'Enter Semantic Scholar paper ID, DOI, or arXiv ID'
+      name: "Semantic Scholar",
+      description:
+        "AI-powered search with rich metadata - works with multiple ID types.",
+      examples: [
+        "649def34f8be52c8b66281af98ae884c09aef38b",
+        "arXiv:1706.03762",
+      ],
+      placeholder: "e.g., paper ID, DOI, or arXiv ID",
+      help: "Enter Semantic Scholar paper ID, DOI, or arXiv ID",
     },
+  };
 
+  let selectedPlatform = null;
 
-};
-
-let selectedPlatform = null;
-
-document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener("DOMContentLoaded", function () {
     // Platform selection
-    document.querySelectorAll('.platform-card').forEach(card => {
-        card.addEventListener('click', function() {
-            // Remove previous selection
-            document.querySelectorAll('.platform-card').forEach(c => c.classList.remove('selected'));
-            
-            // Select current platform
-            this.classList.add('selected');
-            selectedPlatform = this.dataset.platform;
-            
-            // Update UI
-            updatePlatformInfo();
-            updatePlaceholder();
-        });
+    document.querySelectorAll(".platform-card").forEach((card) => {
+      card.addEventListener("click", function () {
+        // Remove previous selection
+        document
+          .querySelectorAll(".platform-card")
+          .forEach((c) => c.classList.remove("selected"));
+
+        // Select current platform
+        this.classList.add("selected");
+        selectedPlatform = this.dataset.platform;
+
+        // Update UI
+        updatePlatformInfo();
+        updatePlaceholder();
+      });
     });
-    
+
     // Form submission
-    document.getElementById('apiForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        if (!selectedPlatform) {
-            alert('Please select a platform first');
-            return;
-        }
-        
-        const paperId = document.getElementById('paperId').value.trim();
-        if (!paperId) {
-            alert('Please enter a paper ID or URL');
-            return;
-        }
-        
-        const fetchBtn = document.getElementById('fetchBtn');
-        const originalText = fetchBtn.innerHTML;
-        
-        fetchBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Fetching...';
-        fetchBtn.disabled = true;
-        
-        // Prepare form data
-        const formData = new FormData();
-        formData.append('source', selectedPlatform);
-        formData.append('paper_id', paperId);
-        formData.append('auto_review', document.getElementById('autoReview').checked);
-        
-        fetch('/api/papers', {
-            method: 'POST',
-            body: formData
+    document.getElementById("apiForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      if (!selectedPlatform) {
+        alert("Please select a platform first");
+        return;
+      }
+
+      const paperId = document.getElementById("paperId").value.trim();
+      if (!paperId) {
+        alert("Please enter a paper ID or URL");
+        return;
+      }
+
+      uploadInProgress = true;
+
+      // Show analysis log
+      analysisLog.show();
+      analysisLog.addLog(
+        `Connecting to ${platformData[selectedPlatform].name}...`,
+        "info",
+        "fa-link"
+      );
+      analysisLog.updateProgress(5);
+
+      const fetchBtn = document.getElementById("fetchBtn");
+      const originalText = fetchBtn.innerHTML;
+
+      fetchBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin me-2"></i>Fetching...';
+      fetchBtn.disabled = true;
+
+      setTimeout(() => {
+        analysisLog.addLog(
+          "Searching for paper in database...",
+          "processing",
+          "fa-search"
+        );
+        analysisLog.updateProgress(25);
+      }, 500);
+
+      // Prepare form data
+      const formData = new FormData();
+      formData.append("source", selectedPlatform);
+      formData.append("paper_id", paperId);
+      formData.append(
+        "auto_review",
+        document.getElementById("autoReview").checked
+      );
+
+      fetch("/api/papers", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.paper) {
+            uploadedPaperTitle = data.paper.title || "Fetched Paper";
+            analysisLog.addLog(
+              "Paper retrieved - processing started...",
+              "success",
+              "fa-check-circle"
+            );
+            analysisLog.updateProgress(15);
+            // Backend will emit real-time progress via WebSocket
+          } else {
+            uploadInProgress = false;
+            analysisLog.addLog(
+              "Failed to fetch paper: " + (data.error || "Unknown error"),
+              "error",
+              "fa-exclamation-triangle"
+            );
+            analysisLog.updateProgress(0);
+            showUploadError(data.error || "Failed to fetch paper");
+          }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.paper) {
-                showUploadSuccess(data.paper.title || 'Fetched Paper');
-                setTimeout(() => window.location.href = '/papers', 1000);
-            } else {
-                showUploadError(data.error || 'Failed to fetch paper');
-            }
-        })
-        .catch(error => {
-            showUploadError(error.message);
+        .catch((error) => {
+          analysisLog.addLog(
+            "Error: " + error.message,
+            "error",
+            "fa-times-circle"
+          );
+          analysisLog.updateProgress(0);
+          showUploadError(error.message);
         })
         .finally(() => {
-            fetchBtn.innerHTML = originalText;
-            fetchBtn.disabled = false;
+          fetchBtn.innerHTML = originalText;
+          fetchBtn.disabled = false;
         });
     });
-});
+  });
 
-function updatePlatformInfo() {
+  function updatePlatformInfo() {
     const info = platformData[selectedPlatform];
-    const infoDiv = document.getElementById('platformInfo');
-    
+    const infoDiv = document.getElementById("platformInfo");
+
     infoDiv.innerHTML = `
         <h6 class="text-warning">${info.name}</h6>
         <p class="small text-secondary mb-3">${info.description}</p>
         <h6 class="small text-primary">Example IDs:</h6>
         <ul class="small text-secondary">
-            ${info.examples.map(ex => `<li><code>${ex}</code></li>`).join('')}
+            ${info.examples.map((ex) => `<li><code>${ex}</code></li>`).join("")}
         </ul>
     `;
-}
+  }
 
-function updatePlaceholder() {
+  function updatePlaceholder() {
     const info = platformData[selectedPlatform];
-    const input = document.getElementById('paperId');
-    const help = document.getElementById('idHelp');
-    
+    const input = document.getElementById("paperId");
+    const help = document.getElementById("idHelp");
+
     input.placeholder = info.placeholder;
     help.textContent = info.help;
-}
+  }
 </script>
 {% endblock %}

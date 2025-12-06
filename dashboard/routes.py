@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -151,24 +151,39 @@ def simulate_review(paper_id):
     try:
         paper = Paper.objects(paper_id=paper_id, user_id=str(user.id)).first()
         if not paper:
+            # Check if AJAX request
+            if request.is_json or request.headers.get('Content-Type') == 'application/json':
+                return jsonify({'error': 'Paper not found'}), 404
             flash('Paper not found', 'error')
             return redirect(url_for('dashboard.papers_list'))
 
         # Check if already reviewed
         existing_consensus = Consensus.objects(paper=paper).first()
         if existing_consensus:
+            if request.is_json or request.headers.get('Content-Type') == 'application/json':
+                return jsonify({'error': 'Paper already reviewed', 'warning': True}), 400
             flash('Paper already reviewed', 'warning')
             return redirect(url_for('dashboard.paper_detail', paper_id=paper_id))
 
-        # Run simulation
+        # Run simulation in background (non-blocking for AJAX)
         simulation = ReviewSimulation()
         result = simulation.simulate_paper_review(paper)
+
+        # Return JSON for AJAX requests
+        if request.is_json or request.headers.get('Content-Type') == 'application/json':
+            return jsonify({
+                'success': True,
+                'message': 'Review simulation completed',
+                'decision': result.get('consensus_decision')
+            }), 200
 
         flash(f'Review simulation completed: {result["consensus_decision"]}', 'success')
         return redirect(url_for('dashboard.paper_detail', paper_id=paper_id))
 
     except Exception as e:
         logger.error(f"Error simulating review: {str(e)}")
+        if request.is_json or request.headers.get('Content-Type') == 'application/json':
+            return jsonify({'error': str(e)}), 500
         flash('Error during review simulation', 'error')
         return redirect(url_for('dashboard.paper_detail', paper_id=paper_id))
 

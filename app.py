@@ -95,8 +95,11 @@ if __name__ == '__main__':
         app = create_app()
         
         # Enable debug logging
-        logging.basicConfig(level=logging.INFO)
-        app.logger.setLevel(logging.INFO)
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        app.logger.setLevel(logging.DEBUG)
         
         # Add request logging
         @app.before_request

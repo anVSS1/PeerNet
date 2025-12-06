@@ -25,45 +25,92 @@ def get_dashboard_analytics():
         
         # Basic counts
         total_papers = Paper.objects().count()
-        reviewed_papers = Consensus.objects().count()
-        pending_papers = total_papers - reviewed_papers
+        
+        # Only count consensus records that have valid paper references
+        reviewed_papers = 0
+        valid_consensus_ids = []
+        for consensus in Consensus.objects():
+            try:
+                if consensus.paper and consensus.paper.id:
+                    reviewed_papers += 1
+                    valid_consensus_ids.append(consensus.id)
+            except Exception:
+                # Skip orphaned consensus records
+                continue
+        
+        pending_papers = max(0, total_papers - reviewed_papers)
         
         # Recent activity
         recent_papers = Paper.objects(created_at__gte=start_date).count()
-        recent_reviews = Review.objects(created_at__gte=start_date).count()
         
-        # Review outcomes
-        decisions = Consensus.objects()
-        accepted = decisions.filter(decision='Accept').count()
-        rejected = decisions.filter(decision='Reject').count()
-        revisions = decisions.count() - accepted - rejected
+        # Only count reviews for papers that still exist
+        recent_reviews = 0
+        for review in Review.objects(created_at__gte=start_date):
+            try:
+                if review.paper and review.paper.id:
+                    recent_reviews += 1
+            except Exception:
+                continue
         
-        # Average scores
-        all_consensus = list(Consensus.objects())
+        # Review outcomes (only from valid consensus records)
+        accepted = 0
+        rejected = 0
+        revisions = 0
+        for consensus in Consensus.objects(id__in=valid_consensus_ids):
+            decision = consensus.decision
+            if decision == 'Accept':
+                accepted += 1
+            elif decision == 'Reject':
+                rejected += 1
+            else:
+                revisions += 1
+        
+        # Average scores (only from valid consensus records)
         avg_scores = {}
-        if all_consensus:
-            scores_data = [c.final_scores for c in all_consensus if c.final_scores]
+        if valid_consensus_ids:
+            scores_data = []
+            for consensus in Consensus.objects(id__in=valid_consensus_ids):
+                if consensus.final_scores:
+                    scores_data.append(consensus.final_scores)
+            
             if scores_data:
                 for key in ['novelty', 'clarity', 'methodology', 'relevance', 'overall']:
-                    values = [s.get(key, 0) for s in scores_data if s.get(key)]
+                    values = [s.get(key, 0) for s in scores_data if s.get(key) and s.get(key) > 0]
                     avg_scores[key] = round(statistics.mean(values), 2) if values else 0
+            else:
+                # Default scores if no data
+                for key in ['novelty', 'clarity', 'methodology', 'relevance', 'overall']:
+                    avg_scores[key] = 0
+        else:
+            # Default scores if no valid consensus
+            for key in ['novelty', 'clarity', 'methodology', 'relevance', 'overall']:
+                avg_scores[key] = 0
         
-        # Bias detection stats
-        total_bias_flags = BiasFlag.objects().count()
+        # Bias detection stats (only for valid papers)
+        total_bias_flags = 0
         bias_types = {}
         for flag in BiasFlag.objects():
-            flag_type = flag.flag_type
-            bias_types[flag_type] = bias_types.get(flag_type, 0) + 1
+            try:
+                # Check if the flag's paper still exists
+                if flag.paper and flag.paper.id:
+                    total_bias_flags += 1
+                    flag_type = flag.flag_type
+                    bias_types[flag_type] = bias_types.get(flag_type, 0) + 1
+            except Exception:
+                continue
         
-        # Review time analysis
+        # Review time analysis (in minutes, more realistic for AI reviews)
         review_times = []
         for paper in Paper.objects():
             consensus = Consensus.objects(paper=paper).first()
-            if consensus and paper.created_at:
-                time_diff = (consensus.created_at - paper.created_at).total_seconds() / 3600
-                review_times.append(time_diff)
+            if consensus and consensus.created_at and paper.created_at:
+                # Calculate time difference in minutes
+                time_diff_minutes = (consensus.created_at - paper.created_at).total_seconds() / 60
+                # Only include positive times less than 24 hours (1440 minutes)
+                if 0 < time_diff_minutes < 1440:
+                    review_times.append(time_diff_minutes)
         
-        avg_review_time = round(statistics.mean(review_times), 2) if review_times else 0
+        avg_review_time_minutes = round(statistics.mean(review_times), 1) if review_times else 0
         
         return jsonify({
             'summary': {
@@ -85,7 +132,7 @@ def get_dashboard_analytics():
             },
             'quality_metrics': {
                 'average_scores': avg_scores,
-                'average_review_time_hours': avg_review_time
+                'average_review_time_minutes': avg_review_time_minutes
             },
             'bias_detection': {
                 'total_flags': total_bias_flags,
@@ -108,7 +155,15 @@ def get_trends():
             month_key = month_start.strftime('%Y-%m')
             
             papers_count = Paper.objects(created_at__gte=month_start, created_at__lt=month_end).count()
-            reviews_count = Consensus.objects(created_at__gte=month_start, created_at__lt=month_end).count()
+            
+            # Only count consensus records with valid paper references
+            reviews_count = 0
+            for consensus in Consensus.objects(created_at__gte=month_start, created_at__lt=month_end):
+                try:
+                    if consensus.paper and consensus.paper.id:
+                        reviews_count += 1
+                except Exception:
+                    continue
             
             monthly_data[month_key] = {
                 'papers': papers_count,
@@ -127,22 +182,30 @@ def get_trends():
 def get_performance_metrics():
     """Get detailed performance metrics."""
     try:
-        # Reviewer performance (simulated since we don't track individual reviewers)
+        # Reviewer performance (only for reviews with valid papers)
         reviewer_stats = {}
         reviews = Review.objects()
         
         for review in reviews:
-            reviewer_id = review.reviewer_id
-            if reviewer_id not in reviewer_stats:
-                reviewer_stats[reviewer_id] = {
-                    'total_reviews': 0,
-                    'avg_scores': {'overall': []},
-                    'confidence_levels': []
-                }
-            
-            reviewer_stats[reviewer_id]['total_reviews'] += 1
-            reviewer_stats[reviewer_id]['avg_scores']['overall'].append(review.scores.get('overall', 0))
-            reviewer_stats[reviewer_id]['confidence_levels'].append(review.confidence or 0.5)
+            try:
+                # Only count reviews for papers that still exist
+                if not (review.paper and review.paper.id):
+                    continue
+                    
+                reviewer_id = review.reviewer_id
+                if reviewer_id not in reviewer_stats:
+                    reviewer_stats[reviewer_id] = {
+                        'total_reviews': 0,
+                        'avg_scores': {'overall': []},
+                        'confidence_levels': []
+                    }
+                
+                reviewer_stats[reviewer_id]['total_reviews'] += 1
+                overall_score = review.scores.get('overall', 0) if review.scores else 0
+                reviewer_stats[reviewer_id]['avg_scores']['overall'].append(overall_score)
+                reviewer_stats[reviewer_id]['confidence_levels'].append(review.confidence or 0.5)
+            except Exception:
+                continue
         
         # Calculate averages
         for reviewer_id, stats in reviewer_stats.items():
@@ -152,15 +215,16 @@ def get_performance_metrics():
             del stats['avg_scores']
             del stats['confidence_levels']
         
-        # System performance
+        # System performance (in minutes)
         processing_times = []
         for consensus in Consensus.objects():
             try:
                 # Safely access the referenced paper and its creation date
                 if consensus.created_at and consensus.paper and consensus.paper.created_at:
-                    time_diff_hours = (consensus.created_at - consensus.paper.created_at).total_seconds() / 3600
-                    if time_diff_hours >= 0: # Ensure no negative times
-                        processing_times.append(time_diff_hours)
+                    time_diff_minutes = (consensus.created_at - consensus.paper.created_at).total_seconds() / 60
+                    # Only include positive times less than 24 hours (1440 minutes)
+                    if 0 < time_diff_minutes < 1440:
+                        processing_times.append(time_diff_minutes)
             except Exception as e:
                 # This will catch the DereferenceError if the paper is deleted
                 logger.debug(f"Skipping consensus for analytics due to dereference error: {e}")
@@ -168,11 +232,20 @@ def get_performance_metrics():
         
         avg_processing_time = statistics.mean(processing_times) if processing_times else 0
         
+        # Count only valid reviews
+        valid_reviews_count = 0
+        for review in Review.objects():
+            try:
+                if review.paper and review.paper.id:
+                    valid_reviews_count += 1
+            except Exception:
+                continue
+        
         return jsonify({
             'reviewer_performance': reviewer_stats,
             'system_performance': {
-                'avg_processing_time_hours': round(avg_processing_time, 2),
-                'total_reviews_completed': Review.objects().count(),
+                'avg_processing_time_minutes': round(avg_processing_time, 1),
+                'total_reviews_completed': valid_reviews_count,
                 'system_uptime_days': 30,  # Placeholder
                 'papers_processed': len(processing_times)
             }

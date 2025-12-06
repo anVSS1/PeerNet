@@ -33,3 +33,38 @@ def handle_leave_user_room(user_id):
         logger.debug(f"User {user_id} left their notification room")
     except Exception as e:
         logger.error(f"Error leaving user room: {str(e)}")
+
+@socketio.on('request_analysis_update')
+def handle_request_analysis_update(data):
+    """Handle client request for analysis status update."""
+    try:
+        paper_id = data.get('paper_id')
+        user_id = data.get('user_id')
+        logger.debug(f"Analysis update requested for paper {paper_id} by user {user_id}")
+    except Exception as e:
+        logger.error(f"Error handling analysis update request: {str(e)}")
+
+def emit_analysis_progress(user_id, paper_id, step, progress, message, status='processing'):
+    """
+    Emit real-time analysis progress to a specific user.
+    
+    Args:
+        user_id: User ID to send notification to
+        paper_id: Paper being analyzed
+        step: Current step name (e.g., 'extraction', 'metadata', 'embedding', 'review')
+        progress: Progress percentage (0-100)
+        message: Human-readable status message
+        status: Status type ('processing', 'success', 'error', 'info')
+    """
+    try:
+        socketio.emit('analysis_progress', {
+            'paper_id': paper_id,
+            'step': step,
+            'progress': progress,
+            'message': message,
+            'status': status,
+            'timestamp': str(logger.get_logger(__name__).handlers[0].formatter.formatTime(logger.handlers[0]))
+        }, room=str(user_id))
+        logger.debug(f"Analysis progress emitted for paper {paper_id}: {step} - {progress}%")
+    except Exception as e:
+        logger.error(f"Error emitting analysis progress: {str(e)}")

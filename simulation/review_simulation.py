@@ -29,11 +29,13 @@ class ReviewSimulation:
         Run the complete review simulation for a single paper.
         """
         logger.info("Starting review simulation for paper: %s", paper.title)
+        user_id = str(paper.user_id) if hasattr(paper, 'user_id') and paper.user_id else None
+        
         socketio.emit('review_progress', {
             'paper_id': paper.paper_id,
             'status': 'starting',
             'message': f"Starting review for '{paper.title[:30]}...'"
-        })
+        }, room=user_id)
         socketio.sleep(0.1)
 
         # Step 1: Assign reviewers
@@ -50,7 +52,7 @@ class ReviewSimulation:
                 'paper_id': paper.paper_id,
                 'status': 'reviewing',
                 'message': f"Agent {reviewer.agent_id} is generating a review..."
-            })
+            }, room=user_id)
             socketio.sleep(0.1)
             try:
                 paper_dict = paper.to_dict()
@@ -121,7 +123,7 @@ class ReviewSimulation:
             'paper_id': paper.paper_id,
             'status': 'consensus',
             'message': 'Building consensus from reviews...'
-        })
+        }, room=user_id)
         
         # Run consensus with error handling
         consensus_result = {'decision': 'Error', 'negotiation_rounds': 0, 'final_scores': {}, 'confidence': 0.0}
@@ -165,7 +167,7 @@ class ReviewSimulation:
             'paper_id': paper.paper_id,
             'status': 'plagiarism_check',
             'message': 'Checking for plagiarism...'
-        })
+        }, room=user_id)
 
         # Step 4: Run plagiarism detection (if enabled/needed)
         plagiarism_result = {'plagiarism_score': 0.0, 'similarity_matches': [], 'recommendations': [], 'analysis_summary': 'No plagiarism check performed.'}
@@ -200,7 +202,7 @@ class ReviewSimulation:
             'paper_id': paper.paper_id,
             'status': 'bias_check',
             'message': 'Detecting potential biases...'
-        })
+        }, room=user_id)
 
         # Step 4: Run bias detection with error handling
         bias_result = {'bias_flags': [], 'total_flags': 0}
@@ -258,7 +260,7 @@ class ReviewSimulation:
             'paper_id': paper.paper_id,
             'status': 'completed',
             'message': f"Review complete! Final decision: {decision}"
-        })
+        }, room=user_id)
         socketio.sleep(0.1)
 
         # Ensure we always return a valid result

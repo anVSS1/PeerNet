@@ -13,21 +13,30 @@
       rel="stylesheet"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
-        --primary: #2563eb;
-        --primary-dark: #1d4ed8;
-        --secondary: #64748b;
-        --success: #059669;
-        --warning: #d97706;
-        --danger: #dc2626;
-        --light: #f8fafc;
-        --dark: #1e293b;
+        /* Modern Academia Color Palette */
+        --primary: #1a237e;
+        --primary-dark: #0d1642;
+        --primary-light: #3949ab;
+        --accent-teal: #26a69a;
+        --accent-purple: #7e57c2;
+        --accent-amber: #ff6f00;
         --white: #ffffff;
-        --border: #e2e8f0;
+        --slate-bg: #f8fafc;
+        --text-dark: #111827;
+        --text-body: #4b5563;
+        --text-muted: #9ca3af;
+        --border: #e5e7eb;
+        --border-light: #f3f4f6;
+        --font-heading: 'Merriweather', serif;
+        --font-body: 'Inter', sans-serif;
+        --radius: 12px;
+        --radius-pill: 9999px;
+        --shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1);
       }
 
       * {
@@ -37,14 +46,38 @@
       }
 
       body {
-        font-family: "Inter", sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: var(--dark);
-        line-height: 1.6;
+        font-family: var(--font-body);
+        background: linear-gradient(
+          135deg,
+          #1a237e 0%,
+          #26a69a 50%,
+          #7e57c2 100%
+        );
+        background-size: 200% 200%;
+        animation: gradientFlow 15s ease infinite;
+        color: var(--text-body);
+        line-height: 1.7;
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+
+      h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-heading);
+        color: var(--text-dark);
+      }
+
+      @keyframes gradientFlow {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
       }
 
       .auth-container {
@@ -60,9 +93,11 @@
       }
 
       .auth-header h1 {
+        font-family: var(--font-heading);
         font-size: 2.5rem;
-        font-weight: 700;
+        font-weight: 900;
         margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
       }
 
       .auth-header p {
@@ -73,31 +108,51 @@
       .card {
         background: var(--white);
         border: none;
-        border-radius: 1rem;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border-radius: var(--radius);
+        box-shadow: 0 20px 60px rgba(26, 35, 126, 0.15),
+          0 10px 30px rgba(0, 188, 212, 0.1);
         overflow: hidden;
+        position: relative;
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--accent-teal),
+          var(--accent-purple)
+        );
       }
 
       .card-body {
-        padding: 2rem;
+        padding: 2.5rem;
       }
 
       .form-control {
         border: 2px solid var(--border);
-        border-radius: 0.75rem;
+        border-radius: var(--radius);
         padding: 0.875rem 1rem;
+        font-family: var(--font-body);
         font-size: 1rem;
+        color: var(--text-body);
         transition: all 0.2s ease;
       }
 
       .form-control:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+        border-color: var(--accent-teal);
+        box-shadow: 0 0 0 0.2rem rgba(38, 166, 154, 0.15);
         transform: translateY(-1px);
+        outline: none;
       }
 
       .btn {
-        border-radius: 0.75rem;
+        border-radius: var(--radius);
+        font-family: var(--font-body);
         font-weight: 600;
         padding: 0.875rem 1.5rem;
         font-size: 1rem;
@@ -105,13 +160,49 @@
       }
 
       .btn-primary {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        background: var(--primary);
+        color: var(--white);
         border: none;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-primary::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      .btn-primary:hover::before {
+        left: 100%;
       }
 
       .btn-primary:hover {
+        background: var(--primary-dark);
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        box-shadow: 0 12px 30px rgba(26, 35, 126, 0.4);
+      }
+
+      .btn-success {
+        background: var(--accent-teal);
+        color: var(--white);
+        border: none;
+      }
+
+      .btn-success:hover {
+        background: #1f8a7e;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(38, 166, 154, 0.4);
       }
 
       .btn-primary:disabled {
@@ -121,16 +212,48 @@
       }
 
       .alert {
-        border-radius: 0.75rem;
+        border-radius: var(--radius);
         border: none;
         padding: 1rem;
         margin-bottom: 1rem;
+        font-family: var(--font-body);
       }
 
       .alert-danger {
-        background-color: rgba(220, 38, 38, 0.1);
-        color: var(--danger);
-        border-left: 4px solid var(--danger);
+        background: rgba(198, 40, 40, 0.1);
+        color: #991b1b;
+        border-left: 4px solid #c62828;
+      }
+
+      .auth-link {
+        color: var(--accent-teal);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .auth-link::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--accent-teal),
+          var(--accent-purple)
+        );
+        transition: width 0.3s ease;
+      }
+
+      .auth-link:hover {
+        color: var(--accent-purple);
+      }
+
+      .auth-link:hover::after {
+        width: 100%;
       }
 
       .animate-fade-in {
@@ -163,11 +286,11 @@
         .auth-container {
           padding: 1rem;
         }
-        
+
         .auth-header h1 {
           font-size: 2rem;
         }
-        
+
         .card-body {
           padding: 1.5rem;
         }
@@ -181,7 +304,7 @@
         <h1><i class="fas fa-graduation-cap me-2"></i>PeerNet++</h1>
         <p>AI-Powered Academic Peer Review</p>
       </div>
-      
+
       {% block content %}{% endblock %}
     </div>
 

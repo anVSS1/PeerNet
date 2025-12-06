@@ -1,92 +1,104 @@
-{% extends "auth_base.html" %}
-{% block title %}Login - PeerNet++{% endblock %}
-
+{% extends "auth_base.html" %} {% block title %}Login - PeerNet++{% endblock %}
 {% block content %}
 <div class="card animate-fade-in">
-    <div class="card-body">
-        <div class="text-center mb-4">
-            <h4><i class="fas fa-sign-in-alt me-2"></i>Welcome Back</h4>
-            <p class="text-muted">Sign in to your account</p>
-        </div>
-        
-        <div id="errorAlert" class="alert alert-danger" style="display: none;">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <span id="errorMessage"></span>
-        </div>
-        
-        <form id="loginForm">
-            <div class="mb-3">
-                <label class="form-label">Username</label>
-                <input type="text" class="form-control" id="username" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100" id="loginBtn">
-                <i class="fas fa-sign-in-alt me-2"></i>Sign In
-            </button>
-        </form>
-        
-        <hr>
-        <div class="text-center">
-            <p>Don't have an account? <a href="/register" class="auth-link">Create one here</a></p>
-        </div>
+  <div class="card-body">
+    <div class="text-center mb-4">
+      <div style="font-size: 3rem; margin-bottom: 1rem">
+        <i
+          class="fas fa-graduation-cap"
+          style="
+            background: linear-gradient(135deg, #26a69a, #7e57c2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+          "
+        ></i>
+      </div>
+      <h4 style="color: #111827; font-weight: 900; font-family: 'Merriweather', serif;">Welcome Back</h4>
+      <p class="text-muted">Sign in to continue to PeerNet++</p>
     </div>
+
+    <div id="errorAlert" class="alert alert-danger" style="display: none">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      <span id="errorMessage"></span>
+    </div>
+
+    <form id="loginForm">
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" required />
+      </div>
+      <button type="submit" class="btn btn-primary w-100" id="loginBtn">
+        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+      </button>
+    </form>
+
+    <hr />
+    <div class="text-center">
+      <p>
+        Don't have an account?
+        <a href="/register" class="auth-link">Create one here</a>
+      </p>
+    </div>
+  </div>
 </div>
 
 <script>
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+  document.getElementById("loginForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const loginBtn = document.getElementById('loginBtn');
-    const errorAlert = document.getElementById('errorAlert');
-    const errorMessage = document.getElementById('errorMessage');
-    
+
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const loginBtn = document.getElementById("loginBtn");
+    const errorAlert = document.getElementById("errorAlert");
+    const errorMessage = document.getElementById("errorMessage");
+
     // Hide previous errors
-    errorAlert.style.display = 'none';
-    
+    errorAlert.style.display = "none";
+
     // Show loading state
     const originalText = loginBtn.innerHTML;
-    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing In...';
+    loginBtn.innerHTML =
+      '<i class="fas fa-spinner fa-spin me-2"></i>Signing In...';
     loginBtn.disabled = true;
-    
-    fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username, password})
+
+    fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
     })
-    .then(response => response.json())
-    .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (data.user) {
-            loginBtn.innerHTML = '<i class="fas fa-check me-2"></i>Success!';
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 500);
+          loginBtn.innerHTML = '<i class="fas fa-check me-2"></i>Success!';
+          setTimeout(() => {
+            window.location.href = "/dashboard";
+          }, 500);
         } else {
-            // Show error and reset form
-            errorMessage.textContent = data.error || 'Login failed';
-            errorAlert.style.display = 'block';
-            
-            // Reset button
-            loginBtn.innerHTML = originalText;
-            loginBtn.disabled = false;
-            
-            // Clear password field
-            document.getElementById('password').value = '';
-            document.getElementById('password').focus();
+          // Show error and reset form
+          errorMessage.textContent = data.error || "Login failed";
+          errorAlert.style.display = "block";
+
+          // Reset button
+          loginBtn.innerHTML = originalText;
+          loginBtn.disabled = false;
+
+          // Clear password field
+          document.getElementById("password").value = "";
+          document.getElementById("password").focus();
         }
-    })
-    .catch(error => {
-        errorMessage.textContent = 'Connection error. Please try again.';
-        errorAlert.style.display = 'block';
-        
+      })
+      .catch((error) => {
+        errorMessage.textContent = "Connection error. Please try again.";
+        errorAlert.style.display = "block";
+
         // Reset button
         loginBtn.innerHTML = originalText;
         loginBtn.disabled = false;
-    });
-});
+      });
+  });
 </script>
 {% endblock %}

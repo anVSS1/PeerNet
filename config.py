@@ -19,7 +19,7 @@ class Config:
     
     # Gemini API settings
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-    GEMINI_MODEL = 'gemma-3-27b-it'  # Using Gemma 7B instruction-tuned
+    GEMINI_MODEL = 'gemma-3-12b-it'  # Using Gemma 12B instruction-tuned
 
     # Review settings
     try:

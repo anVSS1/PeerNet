@@ -125,7 +125,7 @@
     <div class="col-lg-3 col-md-6">
         <div class="analytics-card animate-fade-in">
             <div class="metric-value" id="avg-review-time">-</div>
-            <div class="metric-label">Avg Review Time (hrs)</div>
+            <div class="metric-label">Avg Review Time (min)</div>
             <div class="trend-indicator trend-down" id="time-trend">
                 <i class="fas fa-arrow-down me-1"></i>-8% faster
             </div>
@@ -243,7 +243,7 @@ async function loadAnalyticsData() {
         // Update key metrics
         document.getElementById('total-papers').textContent = data.summary.total_papers;
         document.getElementById('completion-rate').textContent = data.summary.completion_rate + '%';
-        document.getElementById('avg-review-time').textContent = data.quality_metrics.average_review_time_hours;
+        document.getElementById('avg-review-time').textContent = data.quality_metrics.average_review_time_minutes;
         document.getElementById('acceptance-rate').textContent = data.outcomes.acceptance_rate + '%';
         
         // Load trends data

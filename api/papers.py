@@ -156,12 +156,12 @@ def create_paper():
 
             # Validate required fields for JSON source
             if source == 'json' and isinstance(source_data, dict):
-                if not source_data.get('paper_id'):
-                    return jsonify({'error': 'Missing required field: paper_id'}), 400
                 if not source_data.get('title'):
                     return jsonify({'error': 'Missing required field: title'}), 400
+                # paper_id is auto-generated if not provided
 
             intake = PaperIntake()
+            logger.debug(f"Processing paper from source: {source}")
             paper = intake.intake_single_paper(source, source_data, user_id=str(user.id))
 
             if paper:
