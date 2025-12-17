@@ -1,3 +1,16 @@
+'''
+PeerNet++ JSON Handler
+======================
+Parse JSON-formatted paper data for import.
+
+Supported Formats:
+- OpenAlex JSON export
+- Custom PeerNet++ JSON format
+- Generic paper metadata JSON
+
+Converts to standardized paper dict for intake.
+'''
+
 import json
 from typing import Dict, Optional
 import logging

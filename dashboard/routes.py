@@ -1,3 +1,19 @@
+'''
+PeerNet++ Dashboard Routes
+==========================
+Flask routes for the web dashboard interface.
+
+Pages:
+- /papers: List all papers with status
+- /papers/<id>: Paper detail with reviews and consensus
+- /upload: Paper upload interface (PDF/JSON/API)
+- /reviewer-builder: Custom reviewer creation UI
+- /analytics: Advanced analytics dashboard
+- /login, /register: Authentication pages
+
+All dashboard routes render Jinja2 templates from /templates.
+'''
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 import sys
 import os

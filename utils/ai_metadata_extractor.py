@@ -1,3 +1,17 @@
+'''
+PeerNet++ AI Metadata Extractor
+===============================
+Use Gemini AI to extract structured metadata from raw PDF text.
+
+Extracts:
+- Title, Authors (with affiliations)
+- Abstract, Keywords
+- Publication year, DOI
+- Sections (Introduction, Methods, Results, etc.)
+
+Used as fallback when standard parsing fails.
+'''
+
 import google.generativeai as genai
 import json
 import re

@@ -1,3 +1,21 @@
+'''
+PeerNet++ Reviewer Prompt Templates
+===================================
+Predefined reviewer personality templates for the AI review system.
+
+Each template defines:
+- expertise: Area of focus (methodology, novelty, clarity, theory, application)
+- strictness: How harsh (0.0=lenient, 1.0=harsh)
+- detail_focus: Attention to details (0.0=big picture, 1.0=meticulous)
+- innovation_bias: Preference for novel work (0.0=conservative, 1.0=loves innovation)
+- writing_standards: Writing quality expectations (0.0=relaxed, 1.0=perfectionist)
+- methodology_rigor: Methodology expectations (0.0=flexible, 1.0=rigorous)
+- optimism: General disposition (0.0=pessimistic, 1.0=encouraging)
+
+These templates are used by the Reviewer Builder UI and
+can be customized by users to create their own reviewers.
+'''
+
 from flask import Blueprint, jsonify
 
 # Define the templates for reviewers

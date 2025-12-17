@@ -1,3 +1,19 @@
+'''
+PeerNet++ Gemini Agent (Legacy)
+===============================
+Legacy Gemini integration for metadata extraction from text.
+
+Note: This agent is mostly superseded by:
+- PDFParser (for PDF extraction with vision)
+- ConsensusAgent (for review consensus)
+
+Still used for:
+- Fallback text-based metadata extraction
+- Simple text analysis tasks
+
+Model: Configured via GEMINI_MODEL in config
+'''
+
 import google.generativeai as genai
 from config import Config
 import logging

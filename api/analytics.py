@@ -1,3 +1,18 @@
+'''
+PeerNet++ Analytics API
+=======================
+REST API endpoints for platform analytics and statistics.
+
+Endpoints:
+- GET /analytics/overview: Platform-wide statistics
+- GET /analytics/papers: Paper submission trends
+- GET /analytics/reviews: Review quality metrics
+- GET /analytics/reviewers: Reviewer performance stats
+- GET /analytics/consensus: Decision distribution
+
+Used by the Advanced Analytics dashboard.
+'''
+
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

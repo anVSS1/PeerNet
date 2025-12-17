@@ -1,3 +1,22 @@
+'''
+PeerNet++ Papers API
+====================
+REST API endpoints for paper management.
+
+Endpoints:
+- GET /papers: List all papers (with pagination)
+- GET /papers/<id>: Get paper details
+- POST /papers: Upload new paper (PDF/JSON)
+- DELETE /papers/<id>: Remove paper
+- GET /papers/<id>/report: Download PDF review report
+
+Paper Upload Pipeline:
+1. PDF extraction (Gemini Vision / Groq Llama 4 Scout)
+2. Embedding generation (text-embedding-004)
+3. Plagiarism check (MongoDB vector search)
+4. Auto-review (5 AI reviewers + consensus)
+'''
+
 from flask import Blueprint, request, jsonify, send_file
 from models.papers import Paper
 from models.reviews import Review
@@ -119,12 +138,6 @@ def create_paper():
                     num_reviewers=prefs['num_reviewers'],
                     custom_reviewer_ids=prefs['selected_reviewers']
                 )
-            finally:
-                # Clean up temp file
-                try:
-                    os.unlink(temp_path)
-                except OSError:
-                    pass  # File already deleted or in use
                 
                 if paper:
                     # Emit real-time notification
@@ -143,7 +156,16 @@ def create_paper():
                         'paper': paper.to_dict()
                     }), 201
                 else:
-                    return jsonify({'error': 'Failed to process PDF file'}), 400
+                    return jsonify({'error': 'Failed to process PDF file. Paper may have been rejected for plagiarism.'}), 400
+            except Exception as e:
+                logger.error(f"Error processing PDF: {str(e)}")
+                return jsonify({'error': f'Failed to process PDF: {str(e)}'}), 500
+            finally:
+                # Clean up temp file
+                try:
+                    os.unlink(temp_path)
+                except OSError:
+                    pass  # File already deleted or in use
         
         # Handle JSON data
         elif request.is_json:

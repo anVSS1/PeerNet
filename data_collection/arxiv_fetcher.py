@@ -1,3 +1,18 @@
+'''
+PeerNet++ ArXiv Fetcher
+=======================
+Fetch paper metadata from arXiv.org API.
+
+Input Formats:
+- arXiv ID: 2312.12345 or arXiv:2312.12345
+- arXiv URL: https://arxiv.org/abs/2312.12345
+
+Returns standardized paper dict with:
+- title, authors, abstract, year
+- source: 'arxiv'
+- source_id: arXiv ID
+'''
+
 import requests
 import xml.etree.ElementTree as ET
 from typing import Dict, Optional

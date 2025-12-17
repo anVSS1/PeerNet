@@ -1,3 +1,17 @@
+'''
+PeerNet++ Ledger Block Model
+============================
+Blockchain-like immutable audit trail.
+
+Each block contains:
+- previous_hash: Link to prior block (chain integrity)
+- data: Event payload (review, consensus, bias flag)
+- timestamp: When the event occurred
+- hash: SHA-256 hash of this block's contents
+
+Provides tamper-evident history of all review decisions.
+'''
+
 from mongoengine import Document, StringField, DictField, DateTimeField, ReferenceField
 from datetime import datetime
 from .papers import Paper

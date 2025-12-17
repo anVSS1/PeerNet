@@ -1,3 +1,19 @@
+'''
+PeerNet++ Reviewers API
+=======================
+REST API endpoints for custom reviewer management.
+
+Endpoints:
+- GET /reviewers: List available reviewer templates
+- GET /reviewers/custom: List user's custom reviewers
+- POST /reviewers/custom: Create custom reviewer
+- PUT /reviewers/custom/<id>: Update custom reviewer
+- DELETE /reviewers/custom/<id>: Delete custom reviewer
+
+Custom reviewers allow users to define their own
+AI reviewer personalities with specific traits.
+'''
+
 from flask import Blueprint, request, jsonify, session
 from models.custom_reviewers import CustomReviewer
 from models.users import User

@@ -1,3 +1,23 @@
+'''
+PeerNet++ Bias Detection Agent
+==============================
+Statistical analysis agent that detects potential bias in peer reviews.
+
+Detection Methods:
+- Score variance analysis (outlier detection)
+- Language sentiment patterns
+- Expertise mismatch flags
+- Reviewer consistency checks
+
+Bias Types Detected:
+- SCORE_OUTLIER: Unusually high/low scores vs consensus
+- HARSH_LANGUAGE: Overly critical or dismissive wording
+- SOFT_LANGUAGE: Unusually positive without substance
+- EXPERTISE_MISMATCH: Reviewer lacks relevant expertise
+
+No AI model required - pure statistical/rule-based analysis.
+'''
+
 from typing import Dict, Any, List
 import statistics
 import logging

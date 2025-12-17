@@ -1,3 +1,17 @@
+'''
+PeerNet++ Authentication Middleware
+===================================
+Flask decorators and helpers for user authentication.
+
+Decorators:
+- @login_required: Redirect to login if no session
+- @require_auth: Return 401 JSON error for API routes
+
+Helpers:
+- get_current_user(): Get User model from session
+- check_auth(): Check if user is authenticated
+'''
+
 from functools import wraps
 from flask import session, redirect, url_for, request
 from models.users import User

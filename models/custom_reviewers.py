@@ -1,3 +1,19 @@
+'''
+PeerNet++ Custom Reviewer Model
+===============================
+User-defined AI reviewer personalities.
+
+Personality Traits (0.0 to 1.0):
+- strictness: How harsh vs lenient
+- detail_focus: Attention to small details
+- innovation_bias: Preference for novel ideas
+- writing_standards: Grammar/clarity emphasis
+- methodology_rigor: Statistical/methods focus
+- optimism: Overall positive vs negative tone
+
+Expertise Areas: methodology, novelty, clarity, theory, application
+'''
+
 from mongoengine import Document, StringField, ReferenceField, FloatField, DateTimeField, DictField
 from datetime import datetime
 from models.users import User

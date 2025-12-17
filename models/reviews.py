@@ -1,3 +1,17 @@
+'''
+PeerNet++ Review Model
+======================
+MongoEngine model for AI reviewer assessments.
+
+Key Fields:
+- paper: Reference to the reviewed Paper
+- reviewer_id: Agent ID (e.g., 'methodology_expert')
+- scores: Dict with novelty, clarity, methodology, relevance, overall
+- written_feedback: Detailed textual review
+- confidence: Model confidence 0.0-1.0
+- logs: Debug info and reasoning traces
+'''
+
 from mongoengine import Document, StringField, DictField, DateTimeField, FloatField, ReferenceField
 from datetime import datetime
 from .papers import Paper

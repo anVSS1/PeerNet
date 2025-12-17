@@ -1,3 +1,18 @@
+'''
+PeerNet++ PDF Report Generator
+==============================
+Generate downloadable PDF review reports using ReportLab.
+
+Includes:
+- Paper metadata and abstract
+- Individual reviewer scores and feedback
+- Consensus decision and explanation
+- Bias flags (if any)
+- Ledger audit trail
+
+Returns BytesIO buffer for Flask send_file().
+'''
+
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle

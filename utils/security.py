@@ -1,3 +1,21 @@
+'''
+PeerNet++ Security Utilities
+============================
+Security manager for API protection.
+
+Features:
+- Rate limiting (requests per IP per window)
+- IP blocking (auto-block after failed attempts)
+- Input sanitization (prevent XSS, SQL injection)
+- HMAC signature verification for webhooks
+- CSRF token management
+
+Usage:
+    security = SecurityManager()
+    @security.rate_limit(max_requests=100, window_minutes=60)
+    def api_endpoint(): ...
+'''
+
 import hashlib
 import hmac
 import time

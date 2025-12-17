@@ -1,3 +1,20 @@
+'''
+PeerNet++ Logging Configuration
+===============================
+Configure application logging.
+
+Features:
+- Console and file logging
+- Colored output (when available)
+- Log rotation and directory management
+- Module-specific loggers via get_logger()
+
+Usage:
+    from utils.logger import get_logger
+    logger = get_logger(__name__)
+    logger.info("Message")
+'''
+
 import logging
 import sys
 from datetime import datetime

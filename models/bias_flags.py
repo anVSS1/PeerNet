@@ -1,3 +1,17 @@
+'''
+PeerNet++ Bias Flag Model
+=========================
+MongoEngine model for detected reviewer biases.
+
+Flag Types:
+- scoring_outlier: Reviewer scores far from consensus
+- topic_bias: Preference for certain research areas
+- affiliation_bias: Favoritism toward institutions
+- temporal_bias: Preference for recent/older work
+
+Used by BiasDetectionAgent to flag suspicious patterns.
+'''
+
 from mongoengine import Document, StringField, DictField, DateTimeField, FloatField, ReferenceField
 from datetime import datetime
 from .papers import Paper

@@ -1,3 +1,20 @@
+'''
+PeerNet++ Authentication API
+============================
+REST API endpoints for user authentication.
+
+Endpoints:
+- POST /auth/register: Create new user account
+- POST /auth/login: Authenticate and create session
+- POST /auth/logout: Destroy current session
+- GET /auth/me: Get current user info
+
+Security:
+- Passwords hashed with bcrypt
+- Session-based authentication
+- CSRF protection via Flask-WTF
+'''
+
 from flask import Blueprint, request, jsonify, session
 from models.users import User
 from utils.logger import get_logger

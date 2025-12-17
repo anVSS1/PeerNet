@@ -1,3 +1,19 @@
+'''
+PeerNet++ Batch Operations API
+==============================
+REST API endpoints for bulk paper operations.
+
+Endpoints:
+- POST /batch/upload: Upload multiple papers at once
+- POST /batch/review: Trigger reviews for multiple papers
+- GET /batch/status/<job_id>: Check batch job status
+
+Useful for:
+- Conference submissions
+- Journal batches
+- Automated pipelines
+'''
+
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

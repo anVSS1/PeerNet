@@ -1,10 +1,23 @@
+"""
+PeerNet++ V3 - SOTA AI Academic Peer Review Platform
+=====================================================
+2025 Stack:
+- Gemini 2.5 Flash-Lite for PDF vision + reviews
+- Gemini 2.0 Flash Thinking for consensus
+- text-embedding-004 for plagiarism detection
+- DSPy for optimized reviewer prompts
+- MongoDB Atlas for cloud storage with embeddings
+
+Plagiarism runs FIRST, reviews run SECOND.
+"""
+
 import sys
 import os
 import warnings
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-# Suppress spaCy compatibility warnings
-warnings.filterwarnings("ignore", message=".*was trained with spaCy.*")
+# Suppress deprecation warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 from flask import Flask
 from flask_bootstrap import Bootstrap4
@@ -51,19 +64,31 @@ def create_app(config_class=Config):
     # Initialize SocketIO
     socketio.init_app(app, async_mode='threading')
 
-    # Connect to MongoDB
+    # Connect to MongoDB (supports both local and Atlas)
+    logger = get_logger(__name__)
     try:
-        connect(
-            db=app.config['MONGODB_DB'],
-            host=app.config['MONGODB_HOST'],
-            port=app.config['MONGODB_PORT'],
-            username=app.config.get('MONGODB_USERNAME'),
-            password=app.config.get('MONGODB_PASSWORD'),
-            authentication_source='admin' if app.config.get('MONGODB_USERNAME') else None
-        )
+        mongodb_uri = app.config.get('MONGODB_URI')
+        
+        if mongodb_uri:
+            # MongoDB Atlas connection (recommended for production)
+            logger.info("Connecting to MongoDB Atlas...")
+            connect(host=mongodb_uri)
+            logger.info("✓ Connected to MongoDB Atlas")
+        else:
+            # Local MongoDB fallback
+            logger.info("Connecting to local MongoDB...")
+            connect(
+                db=app.config['MONGODB_DB'],
+                host=app.config['MONGODB_HOST'],
+                port=app.config['MONGODB_PORT'],
+                username=app.config.get('MONGODB_USERNAME'),
+                password=app.config.get('MONGODB_PASSWORD'),
+                authentication_source='admin' if app.config.get('MONGODB_USERNAME') else None
+            )
+            logger.info("✓ Connected to local MongoDB")
     except Exception as e:
-        logger = get_logger(__name__)
         logger.error("Failed to connect to MongoDB: %s", str(e))
+        raise
         raise
 
     # Setup logging
@@ -114,12 +139,23 @@ if __name__ == '__main__':
             app.logger.debug('Response: %s %s', response.status_code, response.status)
             return response
         
-        print("\nStarting PeerNet++ in DEBUG mode")
-        print(f"Main Dashboard: http://127.0.0.1:5000")
-        print(f"Upload Papers: http://127.0.0.1:5000/upload")
-        print(f"View Papers: http://127.0.0.1:5000/papers")
-        print("\nFeatures: Auto-processing, Beautiful UI, Real-time Analytics")
-        print("Debug logging enabled - check console for detailed logs\n")
+        print("\n" + "="*60)
+        print("🚀 PeerNet++ V3 - SOTA AI Peer Review Platform")
+        print("="*60)
+        print("\n📊 2025 Multi-Provider Stack:")
+        print("   • Gemini 2.0 Flash Lite (PDF Vision - Primary)")
+        print("   • Groq Llama 4 Scout (PDF Vision - Fallback)")
+        print("   • Groq Llama 3.1 8B (Reviewers - 560 tps)")
+        print("   • Gemini 2.5 Flash (Consensus Reasoning)")
+        print("   • text-embedding-004 (Plagiarism Detection)")
+        print("   • DSPy (Optimized Prompts)")
+        print("   • MongoDB Atlas (Cloud Database)")
+        print("\n🔒 Plagiarism Check: Runs FIRST (85% threshold)")
+        print("\n🌐 URLs:")
+        print(f"   Dashboard: http://127.0.0.1:5000")
+        print(f"   Upload:    http://127.0.0.1:5000/upload")
+        print(f"   Papers:    http://127.0.0.1:5000/papers")
+        print("\n" + "="*60 + "\n")
 
         socketio.run(app, debug=True, host='127.0.0.1', port=5000, use_reloader=False, allow_unsafe_werkzeug=True)
     except Exception as e:

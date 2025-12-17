@@ -1,3 +1,18 @@
+'''
+PeerNet++ PubMed Fetcher
+========================
+Fetch paper metadata from NCBI PubMed E-Utilities API.
+
+Input Formats:
+- PMID: 12345678 or PMID:12345678
+- PubMed URL: https://pubmed.ncbi.nlm.nih.gov/12345678/
+
+Returns standardized paper dict with:
+- title, authors, abstract, year
+- source: 'pubmed'
+- source_id: PMID
+'''
+
 import requests
 import xml.etree.ElementTree as ET
 from typing import Dict, Optional

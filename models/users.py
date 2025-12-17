@@ -1,3 +1,20 @@
+'''
+PeerNet++ User Model
+====================
+User authentication and profile data.
+
+Key Fields:
+- username: Unique login name
+- email: Unique email address
+- password_hash: Werkzeug hashed password
+- preferences: User settings dict
+- is_active: Account enabled flag
+
+Methods:
+- set_password(): Hash and store password
+- check_password(): Verify password hash
+'''
+
 from mongoengine import Document, StringField, EmailField, DateTimeField, BooleanField, DictField
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash

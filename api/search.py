@@ -1,3 +1,18 @@
+'''
+PeerNet++ Search API
+====================
+REST API endpoints for paper search functionality.
+
+Endpoints:
+- GET /search: Search papers by title, author, abstract
+- GET /search/advanced: Advanced search with filters
+- GET /search/semantic: Semantic similarity search using embeddings
+
+Search Methods:
+- Text: MongoDB text index on title, abstract, authors
+- Semantic: Vector similarity using text-embedding-004 embeddings
+'''
+
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

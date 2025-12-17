@@ -1,3 +1,23 @@
+'''
+PeerNet++ Review Simulation Engine
+==================================
+Orchestrates the complete peer review simulation pipeline.
+
+Pipeline Steps:
+1. Assign Reviewers: Create 3-5 AI reviewer agents with different expertise
+2. Generate Reviews: Each reviewer analyzes the paper using DSPy + Groq/Gemma
+3. Build Consensus: Aggregate reviews using Gemini 2.5 Flash reasoning
+4. Plagiarism Check: Vector similarity search against existing papers
+5. Bias Detection: Statistical analysis for reviewer bias patterns
+6. Ledger Logging: Immutable audit trail of all decisions
+
+AI Models Used:
+- Groq Llama 3.1 8B: Primary reviewer (via DSPy)
+- Gemma 3 27B (OpenRouter): Fallback reviewer
+- Gemini 2.5 Flash: Consensus reasoning
+- text-embedding-004: Plagiarism vectors
+'''
+
 from typing import List, Dict, Any
 import logging
 import sys
@@ -31,27 +51,49 @@ class ReviewSimulation:
         logger.info("Starting review simulation for paper: %s", paper.title)
         user_id = str(paper.user_id) if hasattr(paper, 'user_id') and paper.user_id else None
         
+        # Truncate title for display
+        display_title = paper.title[:40] + '...' if len(paper.title) > 40 else paper.title
+        
         socketio.emit('review_progress', {
             'paper_id': paper.paper_id,
             'status': 'starting',
-            'message': f"Starting review for '{paper.title[:30]}...'"
+            'message': f"🚀 Starting AI review for: {display_title}"
         }, room=user_id)
         socketio.sleep(0.1)
 
         # Step 1: Assign reviewers
+        socketio.emit('review_progress', {
+            'paper_id': paper.paper_id,
+            'status': 'reviewing',
+            'message': f"📋 Step 1/5: Assembling reviewer panel..."
+        }, room=user_id)
+        socketio.sleep(0.1)
+        
         if custom_reviewer_ids:
             reviewers = self._create_reviewers_from_custom(custom_reviewer_ids)
         else:
             count = self._determine_reviewer_count(num_reviewers)
             reviewers = self._create_reviewers(count)
+        
+        # Announce the reviewer panel
+        reviewer_names = [r.agent_id.replace('_', ' ').title() for r in reviewers]
+        socketio.emit('review_progress', {
+            'paper_id': paper.paper_id,
+            'status': 'reviewing',
+            'message': f"👥 {len(reviewers)} reviewers assigned: {', '.join(reviewer_names)}"
+        }, room=user_id)
+        socketio.sleep(0.2)
 
         # Step 2: Generate reviews
         reviews_data = []
-        for reviewer in reviewers:
+        total_reviewers = len(reviewers)
+        for idx, reviewer in enumerate(reviewers, 1):
+            # Format reviewer name nicely
+            reviewer_name = reviewer.agent_id.replace('_', ' ').title()
             socketio.emit('review_progress', {
                 'paper_id': paper.paper_id,
                 'status': 'reviewing',
-                'message': f"Agent {reviewer.agent_id} is generating a review..."
+                'message': f"🤖 Step 2/5: {reviewer_name} analyzing... ({idx}/{total_reviewers}) [Groq Llama 3.1]"
             }, room=user_id)
             socketio.sleep(0.1)
             try:
@@ -122,8 +164,9 @@ class ReviewSimulation:
         socketio.emit('review_progress', {
             'paper_id': paper.paper_id,
             'status': 'consensus',
-            'message': 'Building consensus from reviews...'
+            'message': f"🎯 Step 3/5: Building consensus from {len(reviews_data)} reviews... [Groq Llama 3.3 70B]"
         }, room=user_id)
+        socketio.sleep(0.1)
         
         # Run consensus with error handling
         consensus_result = {'decision': 'Error', 'negotiation_rounds': 0, 'final_scores': {}, 'confidence': 0.0}
@@ -163,11 +206,21 @@ class ReviewSimulation:
         except Exception as e:
             logger.error("Failed to log consensus to ledger: %s", str(e))
 
+        # Announce consensus decision
+        decision_emoji = {'Accept': '✅', 'Reject': '❌', 'Minor Revision': '📝', 'Major Revision': '📋'}.get(consensus_result['decision'], '📊')
+        socketio.emit('review_progress', {
+            'paper_id': paper.paper_id,
+            'status': 'consensus',
+            'message': f"{decision_emoji} Preliminary decision: {consensus_result['decision']} (confidence: {consensus_result.get('confidence', 0):.0%})"
+        }, room=user_id)
+        socketio.sleep(0.2)
+
         socketio.emit('review_progress', {
             'paper_id': paper.paper_id,
             'status': 'plagiarism_check',
-            'message': 'Checking for plagiarism...'
+            'message': '🔍 Step 4/5: Running originality check...'
         }, room=user_id)
+        socketio.sleep(0.1)
 
         # Step 4: Run plagiarism detection (if enabled/needed)
         plagiarism_result = {'plagiarism_score': 0.0, 'similarity_matches': [], 'recommendations': [], 'analysis_summary': 'No plagiarism check performed.'}
@@ -191,9 +244,11 @@ class ReviewSimulation:
 
         # Log plagiarism detection to ledger
         try:
+            # Handle both old format (analysis_summary) and new format (recommendation)
+            summary = plagiarism_result.get('analysis_summary') or plagiarism_result.get('recommendation', 'No summary available')
             self._log_to_ledger(paper, 'plagiarism_detected', {
-                'plagiarism_score': plagiarism_result['plagiarism_score'],
-                'summary': plagiarism_result['analysis_summary']
+                'plagiarism_score': plagiarism_result.get('plagiarism_score', 0.0),
+                'summary': summary
             })
         except Exception as e:
             logger.error("Failed to log plagiarism detection to ledger: %s", str(e))
@@ -201,10 +256,11 @@ class ReviewSimulation:
         socketio.emit('review_progress', {
             'paper_id': paper.paper_id,
             'status': 'bias_check',
-            'message': 'Detecting potential biases...'
+            'message': '⚖️ Step 5/5: Analyzing for reviewer bias patterns...'
         }, room=user_id)
+        socketio.sleep(0.1)
 
-        # Step 4: Run bias detection with error handling
+        # Step 5: Run bias detection with error handling
         bias_result = {'bias_flags': [], 'total_flags': 0}
         try:
             bias_agent = BiasDetectionAgent('bias_001')
@@ -256,10 +312,14 @@ class ReviewSimulation:
         except Exception as e:
             logger.error(f"Error updating paper status: {str(e)}")
 
+        # Final completion message with summary
+        decision_emoji = {'Accept': '✅', 'Reject': '❌', 'Minor Revision': '📝', 'Major Revision': '📋', 'Needs Revision': '📋'}.get(decision, '📊')
+        bias_note = f" | {bias_result.get('total_flags', 0)} bias flags" if bias_result.get('total_flags', 0) > 0 else ""
+        
         socketio.emit('review_progress', {
             'paper_id': paper.paper_id,
             'status': 'completed',
-            'message': f"Review complete! Final decision: {decision}"
+            'message': f"🎉 Review complete! {decision_emoji} Decision: {decision} | {len(reviews_data)} reviewers{bias_note}"
         }, room=user_id)
         socketio.sleep(0.1)
 

@@ -1,3 +1,17 @@
+'''
+PeerNet++ OpenAlex Fetcher
+==========================
+Fetch paper metadata from OpenAlex API (https://openalex.org).
+
+Input Formats:
+- DOI: 10.xxxx/xxxxx or https://doi.org/10.xxxx/xxxxx
+- OpenAlex ID: W1234567890
+- OpenAlex URL: https://openalex.org/works/W1234567890
+
+OpenAlex is a free, open catalog of scholarly papers, authors,
+institutions, and more. No API key required!
+'''
+
 import requests
 from typing import Dict, Optional
 import logging

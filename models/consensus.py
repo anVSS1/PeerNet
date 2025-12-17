@@ -1,3 +1,16 @@
+'''
+PeerNet++ Consensus Model
+=========================
+MongoEngine model for multi-agent consensus decisions.
+
+Key Fields:
+- paper: Reference to the reviewed Paper
+- decision: Accept, Minor Revision, Major Revision, Reject
+- negotiation_rounds: List of agent interactions
+- final_scores: Aggregated scores across reviewers
+- overall_explanation: Summary of decision rationale
+'''
+
 from mongoengine import Document, StringField, DictField, DateTimeField, ReferenceField, ListField, FloatField
 from datetime import datetime
 from .papers import Paper

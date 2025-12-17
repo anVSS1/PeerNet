@@ -1,3 +1,16 @@
+'''
+PeerNet++ Reviewer Model
+========================
+Registry of AI reviewer agents.
+
+Key Fields:
+- reviewer_id: Unique agent identifier
+- name: Human-readable name
+- expertise: List of topic keywords
+
+Used to track which agents reviewed which papers.
+'''
+
 from mongoengine import Document, StringField, DateTimeField, ListField
 from datetime import datetime
 

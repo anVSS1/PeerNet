@@ -1,3 +1,20 @@
+'''
+PeerNet++ Semantic Scholar Fetcher
+==================================
+Fetch paper metadata from Semantic Scholar API.
+
+Input Formats:
+- S2 Paper ID: CorpusId:123456789
+- DOI: 10.xxxx/xxxxx
+- arXiv ID: arXiv:2312.12345
+- Semantic Scholar URL
+
+Semantic Scholar provides rich metadata including:
+- Citations, references
+- Influential citations count
+- Fields of study
+'''
+
 import requests
 from typing import Dict, Optional
 import re

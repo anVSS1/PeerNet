@@ -1,3 +1,21 @@
+'''
+PeerNet++ WebSocket Event Handlers
+==================================
+Real-time communication handlers for the PeerNet++ platform.
+
+Events:
+- connect/disconnect: Client connection management
+- join_user_room: Subscribe to personal notifications
+- join_paper_room: Subscribe to paper-specific updates
+- leave_*_room: Unsubscribe from rooms
+
+Used by frontend JavaScript to receive:
+- Upload progress updates
+- Review generation status
+- Consensus decisions
+- Error notifications
+'''
+
 from flask_socketio import emit, join_room, leave_room
 from extensions import socketio
 from utils.logger import get_logger

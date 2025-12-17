@@ -1,3 +1,20 @@
+'''
+PeerNet++ Base Agent
+====================
+Abstract base class for all AI agents in the PeerNet++ system.
+
+Provides:
+- Common agent interface (process method)
+- Activity logging with agent ID prefixes
+- Consistent error handling patterns
+
+Subclasses:
+- ReviewerAgent: Generates paper reviews
+- ConsensusAgent: Builds review consensus
+- PlagiarismAgent: Detects similar papers
+- BiasDetectionAgent: Flags reviewer bias
+'''
+
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 import logging

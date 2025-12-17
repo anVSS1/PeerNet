@@ -1,3 +1,17 @@
+'''
+PeerNet++ Ledger Utilities
+==========================
+Cryptographic hash utilities for the audit ledger.
+
+The ledger uses SHA-256 hashing to create an immutable
+chain of all review events, similar to a blockchain.
+
+Each block contains:
+- Previous block's hash (chain integrity)
+- Timestamp
+- Event data (review, consensus, bias flag)
+'''
+
 import hashlib
 import json
 from datetime import datetime

@@ -1,3 +1,21 @@
+'''
+PeerNet++ Ledger API
+====================
+REST API endpoints for the immutable audit ledger.
+
+Endpoints:
+- GET /ledger/<paper_id>: Get all ledger entries for a paper
+
+The ledger provides an immutable audit trail of all actions:
+- Paper submissions
+- Review generations
+- Consensus decisions
+- Plagiarism detections
+- Status changes
+
+Each entry is hashed and linked to the previous entry.
+'''
+
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
