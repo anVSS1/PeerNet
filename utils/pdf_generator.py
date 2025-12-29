@@ -14,10 +14,11 @@ Returns BytesIO buffer for Flask send_file().
 '''
 
 from reportlab.lib.pagesizes import letter, A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT, TA_CENTER
 from io import BytesIO
 from datetime import datetime
 from models.papers import Paper
@@ -26,6 +27,7 @@ from models.consensus import Consensus
 from models.bias_flags import BiasFlag
 from models.ledger_blocks import LedgerBlock
 import re
+import textwrap
 
 class ReviewReportGenerator:
     def __init__(self):
@@ -33,23 +35,44 @@ class ReviewReportGenerator:
         self.title_style = ParagraphStyle(
             'CustomTitle',
             parent=self.styles['Heading1'],
-            fontSize=18,
+            fontSize=20,
             spaceAfter=30,
-            textColor=colors.darkblue
+            textColor=colors.darkblue,
+            alignment=TA_CENTER
         )
         self.feedback_style = ParagraphStyle(
             'FeedbackStyle',
             parent=self.styles['Normal'],
             fontSize=10,
             leftIndent=20,
+            rightIndent=20,
             spaceAfter=12,
-            alignment=0
+            alignment=TA_JUSTIFY
+        )
+        self.abstract_style = ParagraphStyle(
+            'AbstractStyle',
+            parent=self.styles['Normal'],
+            fontSize=10,
+            leftIndent=10,
+            rightIndent=10,
+            spaceAfter=15,
+            alignment=TA_JUSTIFY
         )
     
-    def format_markdown_text(self, text):
-        """Convert markdown to ReportLab formatted text"""
+    def format_markdown_text(self, text, max_width=80):
+        """Convert markdown to ReportLab formatted text with proper wrapping"""
         if not text:
             return ''
+        
+        # Wrap long lines to prevent overflow
+        lines = text.split('\n')
+        wrapped_lines = []
+        for line in lines:
+            if len(line) > max_width:
+                wrapped_lines.extend(textwrap.wrap(line, width=max_width))
+            else:
+                wrapped_lines.append(line)
+        text = '\n'.join(wrapped_lines)
         
         # Convert bold markdown to ReportLab bold
         text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', text)
@@ -75,7 +98,15 @@ class ReviewReportGenerator:
     def generate_report(self, paper_id):
         """Generate PDF report for a paper's review process"""
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+        doc = SimpleDocTemplate(
+            buffer, 
+            pagesize=A4, 
+            rightMargin=50, 
+            leftMargin=50, 
+            topMargin=50, 
+            bottomMargin=50,
+            title=f"PeerNet++ Review Report - {paper_id}"
+        )
         
         try:
             # Get paper data
@@ -98,19 +129,28 @@ class ReviewReportGenerator:
         
         # Paper Info
         story.append(Paragraph("Paper Information", self.styles['Heading2']))
+        
+        # Wrap long title if needed
+        title_wrapped = textwrap.fill(paper.title, width=60) if len(paper.title) > 60 else paper.title
+        authors_text = ', '.join(paper.authors[:5]) if paper.authors else 'N/A'
+        if len(paper.authors) > 5:
+            authors_text += f' (+{len(paper.authors)-5} more)'
+        
         paper_data = [
-            ['Title:', paper.title],
-            ['Authors:', ', '.join(paper.authors) if paper.authors else 'N/A'],
-            ['Year:', paper.year or 'N/A'],
-            ['DOI:', paper.doi or 'N/A'],
+            ['Title:', title_wrapped],
+            ['Authors:', authors_text],
+            ['Year:', str(paper.year) if paper.year else 'N/A'],
+            ['DOI:', paper.doi[:50] + '...' if paper.doi and len(paper.doi) > 50 else paper.doi or 'N/A'],
             ['Source:', paper.source or 'N/A']
         ]
-        paper_table = Table(paper_data, colWidths=[1.5*inch, 4*inch])
+        paper_table = Table(paper_data, colWidths=[1.2*inch, 4.3*inch])
         paper_table.setStyle(TableStyle([
             ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
             ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
             ('FONTSIZE', (0,0), (-1,-1), 10),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+            ('TOPPADDING', (0,0), (-1,-1), 4),
         ]))
         story.append(paper_table)
         story.append(Spacer(1, 20))
@@ -118,7 +158,9 @@ class ReviewReportGenerator:
         # Abstract
         if paper.abstract:
             story.append(Paragraph("Abstract", self.styles['Heading2']))
-            story.append(Paragraph(paper.abstract, self.styles['Normal']))
+            # Wrap abstract text properly
+            abstract_wrapped = self.format_markdown_text(paper.abstract, max_width=90)
+            story.append(Paragraph(abstract_wrapped, self.abstract_style))
             story.append(Spacer(1, 20))
         
         # Reviews
@@ -148,7 +190,7 @@ class ReviewReportGenerator:
             # Written feedback
             if review.written_feedback:
                 story.append(Paragraph("Feedback:", self.styles['Heading4']))
-                formatted_feedback = self.format_markdown_text(review.written_feedback)
+                formatted_feedback = self.format_markdown_text(review.written_feedback, max_width=85)
                 story.append(Paragraph(formatted_feedback, self.feedback_style))
             
             story.append(Spacer(1, 15))
@@ -181,7 +223,7 @@ class ReviewReportGenerator:
             if explanation:
                 story.append(Spacer(1, 10))
                 story.append(Paragraph("Reasoning:", self.styles['Heading4']))
-                formatted_explanation = self.format_markdown_text(explanation)
+                formatted_explanation = self.format_markdown_text(explanation, max_width=85)
                 story.append(Paragraph(formatted_explanation, self.feedback_style))
             
             story.append(Spacer(1, 20))
@@ -190,9 +232,11 @@ class ReviewReportGenerator:
         if bias_flags:
             story.append(Paragraph("Bias Detection Results", self.styles['Heading2']))
             for flag in bias_flags:
-                story.append(Paragraph(f"Type: {flag.bias_type} (Severity: {flag.severity})", self.styles['Heading4']))
-                if flag.description:
-                    story.append(Paragraph(flag.description, self.styles['Normal']))
+                confidence_text = f" (Confidence: {flag.confidence:.2f})" if flag.confidence else ""
+                story.append(Paragraph(f"Type: {flag.flag_type}{confidence_text}", self.styles['Heading4']))
+                if flag.evidence:
+                    evidence_text = str(flag.evidence) if isinstance(flag.evidence, dict) else flag.evidence
+                    story.append(Paragraph(f"Evidence: {evidence_text}", self.styles['Normal']))
                 story.append(Spacer(1, 10))
         
         # Audit Trail

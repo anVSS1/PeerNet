@@ -127,3 +127,5 @@ temp/
 *.docx
 test_*.py
 *_test.py
+figures.txt
+*.tex
