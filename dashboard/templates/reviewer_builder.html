@@ -224,7 +224,11 @@ endblock %} {% block content %}
       <div class="card-body">
         <div class="mb-3">
           <label class="form-label">Number of Reviewers</label>
-          <select class="form-select" id="numReviewers" onchange="updateReviewerSlots()">
+          <select
+            class="form-select"
+            id="numReviewers"
+            onchange="updateReviewerSlots()"
+          >
             <option value="3">3 Reviewers</option>
             <option value="4">4 Reviewers</option>
             <option value="5" selected>5 Reviewers</option>
@@ -232,11 +236,16 @@ endblock %} {% block content %}
             <option value="7">7 Reviewers</option>
           </select>
         </div>
-        
+
         <div class="mb-3">
           <label class="form-label">
-            Assign Reviewers to Slots 
-            <button type="button" class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#reviewerInfoModal">
+            Assign Reviewers to Slots
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-info ms-2"
+              data-bs-toggle="modal"
+              data-bs-target="#reviewerInfoModal"
+            >
               <i class="fas fa-exclamation-circle"></i> Built-in Reviewers Info
             </button>
           </label>
@@ -244,7 +253,7 @@ endblock %} {% block content %}
             <p class="text-muted small">Select number of reviewers above</p>
           </div>
         </div>
-        
+
         <button class="btn btn-primary" onclick="saveConfiguration()">
           <i class="fas fa-save me-2"></i>Save Configuration
         </button>
@@ -263,6 +272,29 @@ endblock %} {% block content %}
 </div>
 
 <script>
+  // Safe notification helper with fallback
+  function showNotification(options) {
+    if (
+      window.inAppNotifications &&
+      typeof window.inAppNotifications.show === "function"
+    ) {
+      window.inAppNotifications.show(options);
+    } else {
+      // Try again after a short delay
+      setTimeout(() => {
+        if (
+          window.inAppNotifications &&
+          typeof window.inAppNotifications.show === "function"
+        ) {
+          window.inAppNotifications.show(options);
+        } else {
+          // Last resort fallback
+          alert(options.title + ": " + options.message);
+        }
+      }, 200);
+    }
+  }
+
   // Update slider values
   document.querySelectorAll('input[type="range"]').forEach((slider) => {
     slider.addEventListener("input", function () {
@@ -335,17 +367,35 @@ endblock %} {% block content %}
         .then((response) => response.json())
         .then((data) => {
           if (data.reviewer) {
-            alert("Reviewer created successfully!");
+            showNotification({
+              title: "Success!",
+              message: "Reviewer created successfully!",
+              type: "success",
+              duration: 4000,
+            });
             loadUserReviewers();
             document.getElementById("reviewerForm").reset();
           } else {
-            alert("Error: " + (data.error || "Failed to create reviewer"));
+            showNotification({
+              title: "Error",
+              message: data.error || "Failed to create reviewer",
+              type: "error",
+              duration: 6000,
+            });
           }
+        })
+        .catch((error) => {
+          showNotification({
+            title: "Error",
+            message: "Failed to create reviewer",
+            type: "error",
+            duration: 6000,
+          });
         });
     });
 
   let availableReviewers = [];
-  
+
   // Load user's reviewers
   function loadUserReviewers() {
     fetch("/api/reviewers")
@@ -353,7 +403,7 @@ endblock %} {% block content %}
       .then((data) => {
         const container = document.getElementById("reviewersList");
         availableReviewers = data.reviewers || [];
-        
+
         if (availableReviewers.length > 0) {
           // Update reviewers list
           container.innerHTML = availableReviewers
@@ -369,57 +419,90 @@ endblock %} {% block content %}
             )
             .join("");
         } else {
-          container.innerHTML = '<p class="text-secondary">No custom reviewers yet</p>';
+          container.innerHTML =
+            '<p class="text-secondary">No custom reviewers yet</p>';
         }
-        
+
         // Update reviewer slots and load saved preferences
         updateReviewerSlots();
         loadConfiguration();
       });
   }
-  
+
   // Update reviewer slots based on selected number
   function updateReviewerSlots() {
-    const numReviewers = parseInt(document.getElementById('numReviewers').value);
-    const slotsContainer = document.getElementById('reviewerSlots');
-    
+    const numReviewers = parseInt(
+      document.getElementById("numReviewers").value
+    );
+    const slotsContainer = document.getElementById("reviewerSlots");
+
     // Create default reviewers list (built-in personalities)
     const defaultReviewers = [
-      { id: 'default_methodology', name: 'Dr. Methodology (Built-in)', expertise: 'methodology' },
-      { id: 'default_novelty', name: 'Prof. Innovation (Built-in)', expertise: 'novelty' },
-      { id: 'default_clarity', name: 'Dr. Clarity (Built-in)', expertise: 'clarity' },
-      { id: 'default_theory', name: 'Prof. Theory (Built-in)', expertise: 'theory' },
-      { id: 'default_application', name: 'Dr. Application (Built-in)', expertise: 'application' },
-      { id: 'default_balanced1', name: 'Dr. Balanced (Built-in)', expertise: 'balanced' },
-      { id: 'default_balanced2', name: 'Prof. Neutral (Built-in)', expertise: 'balanced' }
+      {
+        id: "default_methodology",
+        name: "Dr. Methodology (Built-in)",
+        expertise: "methodology",
+      },
+      {
+        id: "default_novelty",
+        name: "Prof. Innovation (Built-in)",
+        expertise: "novelty",
+      },
+      {
+        id: "default_clarity",
+        name: "Dr. Clarity (Built-in)",
+        expertise: "clarity",
+      },
+      {
+        id: "default_theory",
+        name: "Prof. Theory (Built-in)",
+        expertise: "theory",
+      },
+      {
+        id: "default_application",
+        name: "Dr. Application (Built-in)",
+        expertise: "application",
+      },
+      {
+        id: "default_balanced1",
+        name: "Dr. Balanced (Built-in)",
+        expertise: "balanced",
+      },
+      {
+        id: "default_balanced2",
+        name: "Prof. Neutral (Built-in)",
+        expertise: "balanced",
+      },
     ];
-    
+
     // Combine custom and default reviewers
     const allReviewers = [...availableReviewers, ...defaultReviewers];
-    
-    let slotsHtml = '';
+
+    let slotsHtml = "";
     for (let i = 1; i <= numReviewers; i++) {
       slotsHtml += `
         <div class="mb-2">
           <label class="form-label">Reviewer ${i}:</label>
           <select class="form-select" id="slot_${i}">
             <option value="">-- Select Reviewer --</option>
-            ${allReviewers.map(r => 
-              `<option value="${r.id}">${r.name}</option>`
-            ).join('')}
+            ${allReviewers
+              .map((r) => `<option value="${r.id}">${r.name}</option>`)
+              .join("")}
           </select>
         </div>
       `;
     }
-    
+
     slotsContainer.innerHTML = slotsHtml;
   }
-  
+
   // Save reviewer configuration
   function saveConfiguration() {
-    const numReviewers = parseInt(document.getElementById('numReviewers').value);
+    const numReviewers = parseInt(
+      document.getElementById("numReviewers").value
+    );
     const reviewerSlots = [];
-    
+
     // Get selected reviewer for each slot
     for (let i = 1; i <= numReviewers; i++) {
       const slotSelect = document.getElementById(`slot_${i}`);
@@ -427,70 +510,127 @@ endblock %} {% block content %}
         reviewerSlots.push(slotSelect.value);
       }
     }
-    
+
     // Validate that all slots are filled
     if (reviewerSlots.length < numReviewers) {
-      alert(`Please assign reviewers to all ${numReviewers} slots before saving.`);
+      showNotification({
+        title: "Incomplete Configuration",
+        message: `Please assign reviewers to all ${numReviewers} slots before saving.`,
+        type: "warning",
+        duration: 5000,
+      });
       return;
     }
-    
-    fetch('/api/reviewers/preferences', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+
+    fetch("/api/reviewers/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         num_reviewers: numReviewers,
-        selected_reviewers: reviewerSlots
-      })
+        selected_reviewers: reviewerSlots,
+      }),
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.message) {
-        alert('Configuration saved! This will be used for all future uploads.');
-      } else {
-        alert('Error: ' + (data.error || 'Failed to save configuration'));
-      }
-    });
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message) {
+          showNotification({
+            title: "Configuration Saved!",
+            message:
+              "Your reviewer configuration will be used for all future uploads.",
+            type: "success",
+            duration: 5000,
+          });
+        } else {
+          showNotification({
+            title: "Save Failed",
+            message: data.error || "Failed to save configuration",
+            type: "error",
+            duration: 6000,
+          });
+        }
+      })
+      .catch((error) => {
+        showNotification({
+          title: "Save Failed",
+          message: "Failed to save configuration",
+          type: "error",
+          duration: 6000,
+        });
+      });
   }
-  
+
   // Load saved configuration
   function loadConfiguration() {
-    fetch('/api/reviewers/preferences')
-    .then(response => response.json())
-    .then(data => {
-      if (data.preferences) {
-        const prefs = data.preferences;
-        document.getElementById('numReviewers').value = prefs.num_reviewers || 5;
-        
-        // Update slots first
-        updateReviewerSlots();
-        
-        // Wait a bit for DOM to update, then set slot values
-        setTimeout(() => {
-          prefs.selected_reviewers.forEach((reviewerId, index) => {
-            const slotSelect = document.getElementById(`slot_${index + 1}`);
-            if (slotSelect) {
-              slotSelect.value = reviewerId;
-            }
-          });
-        }, 100);
-      }
-    });
-  }
-  
-  // Delete reviewer
-  function deleteReviewer(reviewerId) {
-    if (confirm('Are you sure you want to delete this reviewer?')) {
-      fetch(`/api/reviewers/${reviewerId}`, { method: 'DELETE' })
-      .then(response => response.json())
-      .then(data => {
-        if (data.message) {
-          loadUserReviewers();
-        } else {
-          alert('Error: ' + (data.error || 'Failed to delete reviewer'));
+    fetch("/api/reviewers/preferences")
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.preferences) {
+          const prefs = data.preferences;
+          document.getElementById("numReviewers").value =
+            prefs.num_reviewers || 5;
+
+          // Update slots first
+          updateReviewerSlots();
+
+          // Wait a bit for DOM to update, then set slot values
+          setTimeout(() => {
+            prefs.selected_reviewers.forEach((reviewerId, index) => {
+              const slotSelect = document.getElementById(`slot_${index + 1}`);
+              if (slotSelect) {
+                slotSelect.value = reviewerId;
+              }
+            });
+          }, 100);
         }
       });
-    }
   }
+
+  // Delete reviewer
+  let reviewerToDelete = null;
+
+  function deleteReviewer(reviewerId) {
+    reviewerToDelete = reviewerId;
+    const deleteModal = new bootstrap.Modal(
+      document.getElementById("deleteConfirmModal")
+    );
+    deleteModal.show();
+  }
+
+  // Handle confirm delete button click
+  document.addEventListener("DOMContentLoaded", () => {
+    document
+      .getElementById("confirmDeleteBtn")
+      .addEventListener("click", () => {
+        if (reviewerToDelete) {
+          const modal = bootstrap.Modal.getInstance(
+            document.getElementById("deleteConfirmModal")
+          );
+          modal.hide();
+
+          fetch(`/api/reviewers/${reviewerToDelete}`, { method: "DELETE" })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.message) {
+                loadUserReviewers();
+                showNotification({
+                  title: "Reviewer Deleted",
+                  message: "Reviewer has been successfully deleted.",
+                  type: "success",
+                  duration: 4000,
+                });
+              } else {
+                showNotification({
+                  title: "Delete Failed",
+                  message: data.error || "Failed to delete reviewer",
+                  type: "error",
+                  duration: 6000,
+                });
+              }
+              reviewerToDelete = null;
+            });
+        }
+      });
+  });
 
   // Load on page load
   loadUserReviewers();
@@ -547,89 +687,189 @@ endblock %} {% block content %}
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-users me-2"></i>Built-in Reviewer Personalities</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title">
+          <i class="fas fa-users me-2"></i>Built-in Reviewer Personalities
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
       </div>
       <div class="modal-body">
         <div class="row">
           <div class="col-md-6">
             <div class="card mb-3">
               <div class="card-header bg-primary text-white">
-                <h6 class="mb-0"><i class="fas fa-microscope me-2"></i>Dr. Methodology</h6>
+                <h6 class="mb-0">
+                  <i class="fas fa-microscope me-2"></i>Dr. Methodology
+                </h6>
               </div>
               <div class="card-body">
-                <p><strong>Focus:</strong> Experimental design & statistical rigor</p>
-                <p><strong>Personality:</strong> Highly strict about methodology, demands proper controls and statistical analysis</p>
-                <p><strong>Typical feedback:</strong> "The sample size is insufficient" or "Controls are missing"</p>
+                <p>
+                  <strong>Focus:</strong> Experimental design & statistical
+                  rigor
+                </p>
+                <p>
+                  <strong>Personality:</strong> Highly strict about methodology,
+                  demands proper controls and statistical analysis
+                </p>
+                <p>
+                  <strong>Typical feedback:</strong> "The sample size is
+                  insufficient" or "Controls are missing"
+                </p>
               </div>
             </div>
-            
+
             <div class="card mb-3">
               <div class="card-header bg-success text-white">
-                <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Prof. Innovation</h6>
+                <h6 class="mb-0">
+                  <i class="fas fa-lightbulb me-2"></i>Prof. Innovation
+                </h6>
               </div>
               <div class="card-body">
                 <p><strong>Focus:</strong> Novelty & creative approaches</p>
-                <p><strong>Personality:</strong> Loves new ideas, rewards innovation over tradition</p>
-                <p><strong>Typical feedback:</strong> "This novel approach is exciting" or "Needs more innovation"</p>
+                <p>
+                  <strong>Personality:</strong> Loves new ideas, rewards
+                  innovation over tradition
+                </p>
+                <p>
+                  <strong>Typical feedback:</strong> "This novel approach is
+                  exciting" or "Needs more innovation"
+                </p>
               </div>
             </div>
-            
+
             <div class="card mb-3">
               <div class="card-header bg-info text-white">
-                <h6 class="mb-0"><i class="fas fa-comment me-2"></i>Dr. Clarity</h6>
+                <h6 class="mb-0">
+                  <i class="fas fa-comment me-2"></i>Dr. Clarity
+                </h6>
               </div>
               <div class="card-body">
                 <p><strong>Focus:</strong> Writing quality & communication</p>
-                <p><strong>Personality:</strong> Perfectionist about grammar, structure, and readability</p>
-                <p><strong>Typical feedback:</strong> "Unclear writing" or "Excellent presentation"</p>
+                <p>
+                  <strong>Personality:</strong> Perfectionist about grammar,
+                  structure, and readability
+                </p>
+                <p>
+                  <strong>Typical feedback:</strong> "Unclear writing" or
+                  "Excellent presentation"
+                </p>
               </div>
             </div>
           </div>
-          
+
           <div class="col-md-6">
             <div class="card mb-3">
               <div class="card-header bg-warning text-dark">
-                <h6 class="mb-0"><i class="fas fa-book me-2"></i>Prof. Theory</h6>
+                <h6 class="mb-0">
+                  <i class="fas fa-book me-2"></i>Prof. Theory
+                </h6>
               </div>
               <div class="card-body">
-                <p><strong>Focus:</strong> Theoretical foundations & concepts</p>
-                <p><strong>Personality:</strong> Values deep theoretical grounding and conceptual rigor</p>
-                <p><strong>Typical feedback:</strong> "Weak theoretical foundation" or "Strong conceptual framework"</p>
+                <p>
+                  <strong>Focus:</strong> Theoretical foundations & concepts
+                </p>
+                <p>
+                  <strong>Personality:</strong> Values deep theoretical
+                  grounding and conceptual rigor
+                </p>
+                <p>
+                  <strong>Typical feedback:</strong> "Weak theoretical
+                  foundation" or "Strong conceptual framework"
+                </p>
               </div>
             </div>
-            
+
             <div class="card mb-3">
               <div class="card-header bg-danger text-white">
-                <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Dr. Application</h6>
+                <h6 class="mb-0">
+                  <i class="fas fa-cogs me-2"></i>Dr. Application
+                </h6>
               </div>
               <div class="card-body">
-                <p><strong>Focus:</strong> Practical impact & real-world applications</p>
-                <p><strong>Personality:</strong> Wants to see practical value and industry relevance</p>
-                <p><strong>Typical feedback:</strong> "Limited practical impact" or "Great real-world applications"</p>
+                <p>
+                  <strong>Focus:</strong> Practical impact & real-world
+                  applications
+                </p>
+                <p>
+                  <strong>Personality:</strong> Wants to see practical value and
+                  industry relevance
+                </p>
+                <p>
+                  <strong>Typical feedback:</strong> "Limited practical impact"
+                  or "Great real-world applications"
+                </p>
               </div>
             </div>
-            
+
             <div class="card mb-3">
               <div class="card-header bg-secondary text-white">
-                <h6 class="mb-0"><i class="fas fa-balance-scale me-2"></i>Dr. Balanced & Prof. Neutral</h6>
+                <h6 class="mb-0">
+                  <i class="fas fa-balance-scale me-2"></i>Dr. Balanced & Prof.
+                  Neutral
+                </h6>
               </div>
               <div class="card-body">
                 <p><strong>Focus:</strong> Fair, balanced assessment</p>
-                <p><strong>Personality:</strong> Moderate in all aspects, provides balanced feedback</p>
-                <p><strong>Typical feedback:</strong> "Overall solid work with room for improvement"</p>
+                <p>
+                  <strong>Personality:</strong> Moderate in all aspects,
+                  provides balanced feedback
+                </p>
+                <p>
+                  <strong>Typical feedback:</strong> "Overall solid work with
+                  room for improvement"
+                </p>
               </div>
             </div>
           </div>
         </div>
-        
+
         <div class="alert alert-info mt-3">
           <i class="fas fa-info-circle me-2"></i>
-          <strong>Tip:</strong> Mix different personality types for comprehensive reviews. For example, use Dr. Methodology + Prof. Innovation + Dr. Clarity for a well-rounded assessment.
+          <strong>Tip:</strong> Mix different personality types for
+          comprehensive reviews. For example, use Dr. Methodology + Prof.
+          Innovation + Dr. Clarity for a well-rounded assessment.
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirm
+          Deletion
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this reviewer?</p>
+        <p class="text-muted mb-0">
+          <small>This action cannot be undone.</small>
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+          <i class="fas fa-trash me-2"></i>Delete
+        </button>
       </div>
     </div>
   </div>

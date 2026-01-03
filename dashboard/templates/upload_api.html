@@ -209,6 +209,23 @@
 </style>
 
 <script>
+  // Safe notification helper with fallback
+  function showNotification(options) {
+    if (
+      window.inAppNotifications &&
+      typeof window.inAppNotifications.show === "function"
+    ) {
+      window.inAppNotifications.show(options);
+    } else {
+      console.log("Notification:", options.title, "-", options.message);
+      setTimeout(() => {
+        if (window.inAppNotifications) {
+          window.inAppNotifications.show(options);
+        }
+      }, 100);
+    }
+  }
+
   // Live Analysis Log Manager
   class AnalysisLogManager {
     constructor() {
@@ -361,13 +378,23 @@
       e.preventDefault();
 
       if (!selectedPlatform) {
-        alert("Please select a platform first");
+        showNotification({
+          title: "Platform Required",
+          message: "Please select a platform first",
+          type: "warning",
+          duration: 4000,
+        });
         return;
       }
 
       const paperId = document.getElementById("paperId").value.trim();
       if (!paperId) {
-        alert("Please enter a paper ID or URL");
+        showNotification({
+          title: "Paper ID Required",
+          message: "Please enter a paper ID or URL",
+          type: "warning",
+          duration: 4000,
+        });
         return;
       }
 
