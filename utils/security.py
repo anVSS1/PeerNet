@@ -147,19 +147,28 @@ class SecurityManager:
         return value.strip()
     
     def _get_client_ip(self) -> str:
-        """Get client IP address safely."""
-        # Check for forwarded IP (behind proxy)
+        """Get client IP address safely.
+        
+        Note: X-Forwarded-For can be spoofed by clients. In production,
+        configure your reverse proxy (nginx/Cloudflare) to overwrite this header
+        and use request.access_route with a trusted proxy list instead.
+        """
+        # Prefer request.remote_addr as it cannot be spoofed by the client
+        # Only fall back to headers when behind a trusted reverse proxy
+        remote = request.remote_addr
+        if remote and remote not in ('127.0.0.1', '::1'):
+            return remote
+        
+        # Behind localhost proxy — trust the forwarded header
         forwarded_ips = request.headers.get('X-Forwarded-For')
         if forwarded_ips:
             return forwarded_ips.split(',')[0].strip()
         
-        # Check for real IP
         real_ip = request.headers.get('X-Real-IP')
         if real_ip:
             return real_ip
         
-        # Fallback to remote address
-        return request.remote_addr or 'unknown'
+        return remote or 'unknown'
     
     def _is_rate_limited(self, client_ip: str, max_requests: int, window_minutes: int) -> bool:
         """Check if client IP is rate limited."""

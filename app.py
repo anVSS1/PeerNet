@@ -52,12 +52,27 @@ def create_app(config_class=Config):
     """
     app = Flask(__name__, template_folder='dashboard/templates')
     app.config.from_object(config_class)
-    
-    # Session configuration
+
+    # ── SECRET KEY CHECK ──────────────────────────────────────
+    if app.config.get('SECRET_KEY') in (None, '', 'dev-secret-key-change-in-production'):
+        import secrets as _sec
+        generated = _sec.token_hex(32)
+        app.config['SECRET_KEY'] = generated
+        import warnings
+        warnings.warn(
+            "SECRET_KEY is not set or is using the insecure default. "
+            "A random key has been generated for this run. "
+            "Set SECRET_KEY in your .env for stable sessions across restarts.",
+            RuntimeWarning,
+            stacklevel=2
+        )
+
+    # ── Session & cookie hardening ────────────────────────────
     app.config['SESSION_PERMANENT'] = False
     app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = not app.config.get('DEBUG', False)  # HTTPS in prod
 
     # Initialize extensions
     Bootstrap4(app)
@@ -89,7 +104,6 @@ def create_app(config_class=Config):
     except Exception as e:
         logger.error("Failed to connect to MongoDB: %s", str(e))
         raise
-        raise
 
     # Setup logging
     setup_logging()
@@ -101,7 +115,7 @@ def create_app(config_class=Config):
     app.register_blueprint(reviews_bp, url_prefix='/api')
     app.register_blueprint(consensus_bp, url_prefix='/api')
     app.register_blueprint(bias_flags_bp, url_prefix='/api')
-    app.register_blueprint(ledger_bp, url_prefix='/api')
+    app.register_blueprint(ledger_bp, url_prefix='/api/ledger')  # Fixed: was '/api' — now properly namespaced
     app.register_blueprint(batch_bp, url_prefix='/api/batch')
     app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
     app.register_blueprint(search_bp, url_prefix='/api/search')
@@ -110,7 +124,22 @@ def create_app(config_class=Config):
     app.register_blueprint(prompts_bp, url_prefix='/api/prompts')
     app.register_blueprint(dashboard_bp)
 
+    # ── Security headers (after_request) ──────────────────────
+    @app.after_request
+    def set_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Permissions-Policy'] = 'geolocation=(), camera=(), microphone=()'
+        # Cache-control for authenticated pages
+        if 'text/html' in response.content_type:
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+        return response
+
     logger.info("All blueprints registered successfully")
+    logger.info("Security headers enabled")
     logger.info("Application started - sessions will expire on restart")
 
     return app
@@ -119,25 +148,12 @@ if __name__ == '__main__':
     try:
         app = create_app()
         
-        # Enable debug logging
+        # Use INFO level – avoids flooding the terminal with every request
         logging.basicConfig(
-            level=logging.DEBUG,
+            level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
-        app.logger.setLevel(logging.DEBUG)
-        
-        # Add request logging
-        @app.before_request
-        def log_request_info():
-            from flask import request
-            app.logger.debug('Request: %s %s', request.method, request.url)
-            if request.get_json(silent=True):
-                app.logger.debug('Request JSON: %s', request.get_json())
-        
-        @app.after_request
-        def log_response_info(response):
-            app.logger.debug('Response: %s %s', response.status_code, response.status)
-            return response
+        app.logger.setLevel(logging.INFO)
         
         print("\n" + "="*60)
         print("🚀 PeerNet++ V3 - SOTA AI Peer Review Platform")

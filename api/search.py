@@ -17,10 +17,11 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from models.papers import Paper
 from models.reviews import Review
 from models.consensus import Consensus
+from utils.auth_middleware import get_current_user
 from utils.logger import get_logger
 import re
 
@@ -30,7 +31,10 @@ search_bp = Blueprint('search', __name__)
 
 @search_bp.route('/papers', methods=['GET'])
 def search_papers():
-    """Advanced paper search with multiple filters."""
+    """Advanced paper search with multiple filters. Requires authentication."""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Authentication required'}), 401
     try:
         # Get search parameters
         query = request.args.get('q', '').strip()
@@ -156,7 +160,10 @@ def search_papers():
 
 @search_bp.route('/suggestions', methods=['GET'])
 def get_search_suggestions():
-    """Get search suggestions for autocomplete."""
+    """Get search suggestions for autocomplete. Requires authentication."""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Authentication required'}), 401
     try:
         query = request.args.get('q', '').strip()
         if len(query) < 2:
@@ -191,7 +198,10 @@ def get_search_suggestions():
 
 @search_bp.route('/filters', methods=['GET'])
 def get_filter_options():
-    """Get available filter options for search."""
+    """Get available filter options for search. Requires authentication."""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Authentication required'}), 401
     try:
         # Get unique sources
         sources = Paper.objects().distinct('source')

@@ -28,6 +28,33 @@ endblock %} {% block extra_css %}
     line-height: 1.6;
   }
 
+  /* Style markdown-rendered tables inside formatted-text / review-feedback */
+  .formatted-text table,
+  .review-feedback table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    font-size: 0.9rem;
+  }
+  .formatted-text th,
+  .formatted-text td,
+  .review-feedback th,
+  .review-feedback td {
+    padding: 0.45rem 0.75rem;
+    border: 1px solid #dee2e6;
+    text-align: left;
+  }
+  .formatted-text th,
+  .review-feedback th {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+  }
+  .formatted-text tr:nth-child(even),
+  .review-feedback tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
   /* Floating Analysis Log */
   .floating-analysis-log {
     position: fixed;
@@ -37,7 +64,9 @@ endblock %} {% block extra_css %}
     max-height: 400px;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(26, 35, 126, 0.2), 0 5px 20px rgba(0, 188, 212, 0.15);
+    box-shadow:
+      0 10px 40px rgba(26, 35, 126, 0.2),
+      0 5px 20px rgba(0, 188, 212, 0.15);
     z-index: 1050;
     display: none;
     animation: slideInLeft 0.4s ease-out;
@@ -137,17 +166,29 @@ endblock %} {% block extra_css %}
   }
 
   .floating-log-entry.success {
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+    background: linear-gradient(
+      135deg,
+      rgba(76, 175, 80, 0.1),
+      rgba(76, 175, 80, 0.05)
+    );
     border-left: 3px solid #4caf50;
   }
 
   .floating-log-entry.info {
-    background: linear-gradient(135deg, rgba(0, 188, 212, 0.1), rgba(0, 188, 212, 0.05));
+    background: linear-gradient(
+      135deg,
+      rgba(0, 188, 212, 0.1),
+      rgba(0, 188, 212, 0.05)
+    );
     border-left: 3px solid #00bcd4;
   }
 
   .floating-log-entry.warning {
-    background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 152, 0, 0.05));
+    background: linear-gradient(
+      135deg,
+      rgba(255, 152, 0, 0.1),
+      rgba(255, 152, 0, 0.05)
+    );
     border-left: 3px solid #ff9800;
   }
 
@@ -190,13 +231,18 @@ endblock %} {% block extra_css %}
   }
 
   .floating-log-progress-fill::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
     animation: shimmer 1.5s infinite;
   }
 
@@ -244,7 +290,10 @@ endblock %} {% block extra_css %}
     <div class="alert alert-success formatted-text">
       <strong>Overall Assessment:</strong>
       <div class="mt-2">
-        {{ consensus.overall_explanation|safe or "The AI reviewers found this paper demonstrates sufficient novelty, methodological rigor, clarity, and relevance. All criteria exceeded the acceptance threshold of 7.5/10." }}
+        {{ consensus.overall_explanation|safe or "The AI reviewers found this
+        paper demonstrates sufficient novelty, methodological rigor, clarity,
+        and relevance. All criteria exceeded the acceptance threshold of
+        7.5/10." }}
       </div>
     </div>
     {% elif consensus.decision == 'Reject' %}
@@ -257,7 +306,9 @@ endblock %} {% block extra_css %}
     <div class="alert alert-danger formatted-text">
       <strong>Overall Assessment:</strong>
       <div class="mt-2">
-        {{ consensus.overall_explanation|safe or "Critical issues were identified in methodology, novelty, clarity, or relevance. The score fell below the acceptance threshold of 6.0/10." }}
+        {{ consensus.overall_explanation|safe or "Critical issues were
+        identified in methodology, novelty, clarity, or relevance. The score
+        fell below the acceptance threshold of 6.0/10." }}
       </div>
     </div>
     {% else %}
@@ -270,7 +321,9 @@ endblock %} {% block extra_css %}
     <div class="alert alert-warning formatted-text">
       <strong>Overall Assessment:</strong>
       <div class="mt-2">
-        {{ consensus.overall_explanation|safe or "The paper shows merit but specific issues need addressing. With revisions, this work could meet publication standards." }}
+        {{ consensus.overall_explanation|safe or "The paper shows merit but
+        specific issues need addressing. With revisions, this work could meet
+        publication standards." }}
       </div>
     </div>
     {% endif %}
@@ -299,8 +352,6 @@ endblock %} {% block extra_css %}
   </div>
 </div>
 {% endif %}
-
-
 
 <div class="row">
   <!-- Paper Information -->
@@ -397,7 +448,12 @@ endblock %} {% block extra_css %}
           <p class="text-secondary">
             This paper hasn't been reviewed by AI agents.
           </p>
-          <button type="button" class="btn btn-primary" id="startReviewBtn" onclick="startAIReview()">
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="startReviewBtn"
+            onclick="startAIReview()"
+          >
             <i class="fas fa-play me-2"></i>Start AI Review
           </button>
         </div>
@@ -447,18 +503,142 @@ endblock %} {% block extra_css %}
       </div>
       <div class="card-body">
         {% if not consensus %}
-        <button type="button" class="btn btn-primary w-100 mb-2" id="startReviewBtnSidebar" onclick="startAIReview()">
+        <button
+          type="button"
+          class="btn btn-primary w-100 mb-2"
+          id="startReviewBtnSidebar"
+          onclick="startAIReview()"
+        >
           <i class="fas fa-robot me-2"></i>Start Review
         </button>
         {% endif %}
 
-        <a href="/api/papers/{{ paper.paper_id }}/export-pdf" class="btn btn-success w-100 mb-2">
+        <a
+          href="/api/papers/{{ paper.paper_id }}/export-pdf"
+          class="btn btn-success w-100 mb-2"
+        >
           <i class="fas fa-file-pdf me-2"></i>Export PDF Report
         </a>
-        
+
         <a href="/papers" class="btn btn-secondary w-100">
           <i class="fas fa-list me-2"></i>All Papers
         </a>
+      </div>
+    </div>
+
+    <!-- Blockchain Audit Trail -->
+    <div class="card mt-4 animate-fade-in">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h5 class="mb-0">
+          <i class="fas fa-link me-2"></i>
+          Blockchain Audit Trail
+        </h5>
+        {% if ledger_blocks %} {% if ledger_valid %}
+        <span
+          class="badge bg-success"
+          title="All block hashes and chain links verified"
+        >
+          <i class="fas fa-shield-alt me-1"></i>Chain Valid
+        </span>
+        {% else %}
+        <span
+          class="badge bg-danger"
+          title="Chain integrity check failed — possible tampering"
+        >
+          <i class="fas fa-exclamation-triangle me-1"></i>Chain Invalid
+        </span>
+        {% endif %} {% else %}
+        <span class="badge bg-secondary">
+          <i class="fas fa-minus-circle me-1"></i>No Blocks
+        </span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if ledger_blocks %}
+        <p class="text-secondary mb-3" style="font-size: 0.85rem">
+          {{ ledger_blocks|length }} block{{ 's' if ledger_blocks|length != 1
+          else '' }} &mdash; SHA-256 hash-chained, tamper-evident log of every
+          review event.
+        </p>
+        <div class="table-responsive">
+          <table
+            class="table table-sm table-hover mb-0"
+            style="font-size: 0.82rem"
+          >
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Timestamp</th>
+                <th>Event</th>
+                <th>Hash</th>
+                <th>Prev Hash</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for block in ledger_blocks %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td class="text-nowrap">{{ block.timestamp[:19] }}</td>
+                <td>
+                  {% set evt = block.data.get('event_type', 'unknown') if
+                  block.data else 'unknown' %} {% if evt == 'review_generated'
+                  %}
+                  <span class="badge bg-info text-dark"
+                    ><i class="fas fa-pen-fancy me-1"></i>Review</span
+                  >
+                  {% elif evt == 'consensus_reached' %}
+                  <span class="badge bg-primary"
+                    ><i class="fas fa-handshake me-1"></i>Consensus</span
+                  >
+                  {% elif evt == 'plagiarism_detected' %}
+                  <span class="badge bg-warning text-dark"
+                    ><i class="fas fa-search me-1"></i>Plagiarism</span
+                  >
+                  {% elif evt == 'bias_detected' %}
+                  <span class="badge bg-secondary"
+                    ><i class="fas fa-balance-scale me-1"></i>Bias</span
+                  >
+                  {% else %}
+                  <span class="badge bg-dark">{{ evt }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <code title="{{ block.hash }}">{{ block.hash[:12] }}…</code>
+                </td>
+                <td>
+                  <code title="{{ block.previous_hash }}"
+                    >{{ block.previous_hash[:12] }}…</code
+                  >
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if not ledger_valid and ledger_verification and
+        ledger_verification.errors %}
+        <div class="alert alert-danger mt-3 mb-0" style="font-size: 0.82rem">
+          <strong
+            ><i class="fas fa-exclamation-triangle me-1"></i>Integrity errors
+            detected:</strong
+          >
+          <ul class="mb-0 mt-1">
+            {% for err in ledger_verification.errors %}
+            <li>Block #{{ err.block_index + 1 }}: {{ err.error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %} {% else %}
+        <div class="text-center py-3">
+          <i class="fas fa-cube fa-2x text-secondary mb-2"></i>
+          <p class="text-secondary mb-0">
+            No audit trail yet. Run a review to populate the ledger.
+          </p>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -480,180 +660,199 @@ endblock %} {% block extra_css %}
   </div>
   <div class="floating-log-progress">
     <div class="floating-log-progress-bar">
-      <div class="floating-log-progress-fill" id="floatingLogProgressFill" style="width: 0%"></div>
+      <div
+        class="floating-log-progress-fill"
+        id="floatingLogProgressFill"
+        style="width: 0%"
+      ></div>
     </div>
-    <div class="floating-log-progress-text" id="floatingLogProgressText">Starting...</div>
+    <div class="floating-log-progress-text" id="floatingLogProgressText">
+      Starting...
+    </div>
   </div>
 </div>
 
 {% endblock %} {% block extra_js %}
 <script>
-const paperId = '{{ paper.paper_id }}';
-let reviewInProgress = false;
+  const paperId = "{{ paper.paper_id }}";
+  let reviewInProgress = false;
 
-class FloatingAnalysisLog {
-  constructor() {
-    this.container = document.getElementById('floatingAnalysisLog');
-    this.body = document.getElementById('floatingLogBody');
-    this.progressFill = document.getElementById('floatingLogProgressFill');
-    this.progressText = document.getElementById('floatingLogProgressText');
-  }
+  class FloatingAnalysisLog {
+    constructor() {
+      this.container = document.getElementById("floatingAnalysisLog");
+      this.body = document.getElementById("floatingLogBody");
+      this.progressFill = document.getElementById("floatingLogProgressFill");
+      this.progressText = document.getElementById("floatingLogProgressText");
+    }
 
-  show() {
-    this.container.classList.remove('hiding');
-    this.container.classList.add('show');
-    this.body.innerHTML = '';
-    this.updateProgress(0, 'Initializing...');
-  }
+    show() {
+      this.container.classList.remove("hiding");
+      this.container.classList.add("show");
+      this.body.innerHTML = "";
+      this.updateProgress(0, "Initializing...");
+    }
 
-  hide() {
-    this.container.classList.add('hiding');
-    setTimeout(() => {
-      this.container.classList.remove('show', 'hiding');
-    }, 400);
-  }
+    hide() {
+      this.container.classList.add("hiding");
+      setTimeout(() => {
+        this.container.classList.remove("show", "hiding");
+      }, 400);
+    }
 
-  addLog(message, status = 'info', icon = 'fas fa-info-circle') {
-    const timestamp = new Date().toLocaleTimeString();
-    const entry = document.createElement('div');
-    entry.className = `floating-log-entry ${status}`;
-    entry.innerHTML = `
+    addLog(message, status = "info", icon = "fas fa-info-circle") {
+      const timestamp = new Date().toLocaleTimeString();
+      const entry = document.createElement("div");
+      entry.className = `floating-log-entry ${status}`;
+      entry.innerHTML = `
       <div class="icon"><i class="${icon}"></i></div>
       <div class="content">
         <div class="timestamp">${timestamp}</div>
         <div>${message}</div>
       </div>
     `;
-    this.body.appendChild(entry);
-    this.body.scrollTop = this.body.scrollHeight;
-  }
-
-  updateProgress(percentage, text) {
-    this.progressFill.style.width = percentage + '%';
-    this.progressText.textContent = text || `${percentage}% complete`;
-  }
-
-  setComplete() {
-    this.updateProgress(100, 'Review complete!');
-    this.addLog('AI review completed successfully', 'success', 'fas fa-check-circle');
-    setTimeout(() => this.hide(), 3000);
-  }
-}
-
-const floatingLog = new FloatingAnalysisLog();
-
-function closeFloatingLog() {
-  floatingLog.hide();
-}
-
-async function startAIReview() {
-  if (reviewInProgress) {
-    console.log('Review already in progress');
-    return;
-  }
-
-  reviewInProgress = true;
-  
-  // Disable buttons
-  const buttons = ['startReviewBtn', 'startReviewBtnSidebar'];
-  buttons.forEach(id => {
-    const btn = document.getElementById(id);
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Starting...';
+      this.body.appendChild(entry);
+      this.body.scrollTop = this.body.scrollHeight;
     }
-  });
 
-  // Show floating log
-  floatingLog.show();
-  floatingLog.addLog('Initiating AI review process...', 'info', 'fas fa-rocket');
-
-  try {
-    const response = await fetch(`/paper/${paperId}/simulate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-    
-    if (response.ok) {
-      floatingLog.addLog('Review request submitted', 'success', 'fas fa-check');
-      floatingLog.updateProgress(5, 'Waiting for AI reviewers...');
-    } else {
-      throw new Error(data.error || 'Failed to start review');
+    updateProgress(percentage, text) {
+      this.progressFill.style.width = percentage + "%";
+      this.progressText.textContent = text || `${percentage}% complete`;
     }
-  } catch (error) {
-    console.error('Error starting review:', error);
-    floatingLog.addLog(`Error: ${error.message}`, 'warning', 'fas fa-exclamation-triangle');
-    reviewInProgress = false;
-    
-    // Re-enable buttons
-    buttons.forEach(id => {
+
+    setComplete() {
+      this.updateProgress(100, "Review complete!");
+      this.addLog(
+        "AI review completed successfully",
+        "success",
+        "fas fa-check-circle",
+      );
+      setTimeout(() => this.hide(), 3000);
+    }
+  }
+
+  const floatingLog = new FloatingAnalysisLog();
+
+  function closeFloatingLog() {
+    floatingLog.hide();
+  }
+
+  async function startAIReview() {
+    if (reviewInProgress) {
+      return;
+    }
+
+    reviewInProgress = true;
+
+    // Disable buttons
+    const buttons = ["startReviewBtn", "startReviewBtnSidebar"];
+    buttons.forEach((id) => {
       const btn = document.getElementById(id);
       if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-robot me-2"></i>Start Review';
+        btn.disabled = true;
+        btn.innerHTML =
+          '<i class="fas fa-spinner fa-spin me-2"></i>Starting...';
       }
     });
-    
-    setTimeout(() => floatingLog.hide(), 3000);
-  }
-}
 
-// WebSocket listener for review progress
-if (typeof socket !== 'undefined') {
-  socket.on('review_progress', function(data) {
-    if (!reviewInProgress || data.paper_id !== paperId) return;
-    
-    console.log('Review progress:', data);
-    
-    // Determine icon and status based on message content
-    let icon = 'fas fa-cog fa-spin';
-    let status = 'info';
-    
-    if (data.status === 'completed' || data.message.includes('completed')) {
-      icon = 'fas fa-check-circle';
-      status = 'success';
-    } else if (data.status === 'error' || data.message.includes('error')) {
-      icon = 'fas fa-exclamation-triangle';
-      status = 'warning';
-    } else if (data.message.includes('Reviewer')) {
-      icon = 'fas fa-user-graduate';
-    } else if (data.message.includes('consensus')) {
-      icon = 'fas fa-handshake';
-    } else if (data.message.includes('bias')) {
-      icon = 'fas fa-shield-alt';
-    } else if (data.message.includes('plagiarism')) {
-      icon = 'fas fa-search';
-    }
-    
-    floatingLog.addLog(data.message, status, icon);
-    
-    // Update progress based on status
-    if (data.status === 'starting') {
-      floatingLog.updateProgress(10, 'Preparing reviewers...');
-    } else if (data.status === 'reviewing') {
-      floatingLog.updateProgress(30, 'AI agents analyzing...');
-    } else if (data.status === 'consensus') {
-      floatingLog.updateProgress(70, 'Building consensus...');
-    } else if (data.status === 'bias_check') {
-      floatingLog.updateProgress(85, 'Checking for bias...');
-    } else if (data.status === 'plagiarism_check') {
-      floatingLog.updateProgress(90, 'Checking originality...');
-    } else if (data.status === 'completed') {
-      floatingLog.setComplete();
+    // Show floating log
+    floatingLog.show();
+    floatingLog.addLog(
+      "Initiating AI review process...",
+      "info",
+      "fas fa-rocket",
+    );
+
+    try {
+      const response = await fetch(`/paper/${paperId}/simulate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        floatingLog.addLog(
+          "Review request submitted",
+          "success",
+          "fas fa-check",
+        );
+        floatingLog.updateProgress(5, "Waiting for AI reviewers...");
+      } else {
+        throw new Error(data.error || "Failed to start review");
+      }
+    } catch (error) {
+      console.error("Error starting review:", error);
+      floatingLog.addLog(
+        `Error: ${error.message}`,
+        "warning",
+        "fas fa-exclamation-triangle",
+      );
       reviewInProgress = false;
-      // Reload page after a delay to show results
-      setTimeout(() => {
-        window.location.reload();
-      }, 3500);
-    }
-  });
-}
 
-// Chart disabled to prevent text rendering issues
-console.log('Chart rendering disabled');
+      // Re-enable buttons
+      buttons.forEach((id) => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-robot me-2"></i>Start Review';
+        }
+      });
+
+      setTimeout(() => floatingLog.hide(), 3000);
+    }
+  }
+
+  // WebSocket listener for review progress
+  if (typeof socket !== "undefined") {
+    socket.on("review_progress", function (data) {
+      if (!reviewInProgress || data.paper_id !== paperId) return;
+
+      // Determine icon and status based on message content
+      let icon = "fas fa-cog fa-spin";
+      let status = "info";
+
+      if (data.status === "completed" || data.message.includes("completed")) {
+        icon = "fas fa-check-circle";
+        status = "success";
+      } else if (data.status === "error" || data.message.includes("error")) {
+        icon = "fas fa-exclamation-triangle";
+        status = "warning";
+      } else if (data.message.includes("Reviewer")) {
+        icon = "fas fa-user-graduate";
+      } else if (data.message.includes("consensus")) {
+        icon = "fas fa-handshake";
+      } else if (data.message.includes("bias")) {
+        icon = "fas fa-shield-alt";
+      } else if (data.message.includes("plagiarism")) {
+        icon = "fas fa-search";
+      }
+
+      floatingLog.addLog(data.message, status, icon);
+
+      // Update progress based on status
+      if (data.status === "starting") {
+        floatingLog.updateProgress(10, "Preparing reviewers...");
+      } else if (data.status === "reviewing") {
+        floatingLog.updateProgress(30, "AI agents analyzing...");
+      } else if (data.status === "consensus") {
+        floatingLog.updateProgress(70, "Building consensus...");
+      } else if (data.status === "bias_check") {
+        floatingLog.updateProgress(85, "Checking for bias...");
+      } else if (data.status === "plagiarism_check") {
+        floatingLog.updateProgress(90, "Checking originality...");
+      } else if (data.status === "completed") {
+        floatingLog.setComplete();
+        reviewInProgress = false;
+        // Reload page after a delay to show results
+        setTimeout(() => {
+          window.location.reload();
+        }, 3500);
+      }
+    });
+  }
+
+  // Chart rendering disabled
 </script>
 {% endblock %}

@@ -16,7 +16,8 @@ Used by frontend JavaScript to receive:
 - Error notifications
 '''
 
-from flask_socketio import emit, join_room, leave_room
+from flask import session
+from flask_socketio import emit, join_room, leave_room, disconnect
 from extensions import socketio
 from utils.logger import get_logger
 
@@ -24,8 +25,12 @@ logger = get_logger(__name__)
 
 @socketio.on('connect')
 def handle_connect():
-    """Handle client connection."""
-    logger.debug("Client connected")
+    """Handle client connection. Reject unauthenticated clients."""
+    if 'user_id' not in session:
+        logger.warning("Unauthenticated WebSocket connection rejected")
+        disconnect()
+        return False
+    logger.debug("Client connected (user=%s)", session['user_id'])
     emit('connected', {'message': 'Connected to PeerNet++ real-time service'})
 
 @socketio.on('disconnect')
@@ -35,8 +40,14 @@ def handle_disconnect():
 
 @socketio.on('join_user_room')
 def handle_join_user_room(user_id):
-    """Join user to their personal notification room."""
+    """Join user to their personal notification room (server-validated)."""
     try:
+        # Validate that the requesting client owns this user_id
+        session_uid = session.get('user_id')
+        if not session_uid or str(user_id) != str(session_uid):
+            logger.warning("Room join denied: client %s tried to join room %s", session_uid, user_id)
+            emit('error', {'message': 'Unauthorized room join'})
+            return
         join_room(user_id)
         logger.debug(f"User {user_id} joined their notification room")
         emit('room_joined', {'message': f'Joined notification room for user {user_id}'})

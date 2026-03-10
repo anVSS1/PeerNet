@@ -36,6 +36,11 @@ class LedgerBlock(Document):
 
     def save(self, *args, **kwargs):
         try:
+            # Truncate timestamp to millisecond precision to match MongoDB
+            if self.timestamp:
+                self.timestamp = self.timestamp.replace(
+                    microsecond=(self.timestamp.microsecond // 1000) * 1000
+                )
             if not self.hash:
                 self.hash = self.calculate_hash()
             return super().save(*args, **kwargs)

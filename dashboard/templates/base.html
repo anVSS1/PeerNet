@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -302,7 +302,9 @@
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.3);
         transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
+        transition:
+          width 0.6s,
+          height 0.6s;
       }
 
       .btn:active::after {
@@ -554,7 +556,8 @@
       .form-control:focus,
       .form-select:focus {
         border-color: var(--accent-teal);
-        box-shadow: 0 0 0 4px rgba(38, 166, 154, 0.1),
+        box-shadow:
+          0 0 0 4px rgba(38, 166, 154, 0.1),
           0 4px 12px rgba(38, 166, 154, 0.15);
         transform: translateY(-1px);
         background: var(--white);
@@ -597,7 +600,8 @@
 
       .form-range::-webkit-slider-thumb:hover {
         transform: scale(1.3);
-        box-shadow: 0 0 0 12px rgba(0, 188, 212, 0.15),
+        box-shadow:
+          0 0 0 12px rgba(0, 188, 212, 0.15),
           0 4px 12px rgba(0, 188, 212, 0.5);
       }
 
@@ -622,7 +626,8 @@
 
       .form-range::-moz-range-thumb:hover {
         transform: scale(1.3);
-        box-shadow: 0 0 0 12px rgba(0, 188, 212, 0.15),
+        box-shadow:
+          0 0 0 12px rgba(0, 188, 212, 0.15),
           0 4px 12px rgba(0, 188, 212, 0.5);
       }
 
@@ -1248,7 +1253,6 @@
       let activeProcessingNotifications = new Map(); // Track processing notifications by paper_id
 
       socket.on("connect", function () {
-        console.log("Connected to PeerNet++ real-time service.");
         // Join user-specific room for notifications
         {% if session.user_id %}
         socket.emit('join_user_room', '{{ session.user_id }}');
@@ -1256,7 +1260,6 @@
       });
 
       socket.on("upload_progress", function (data) {
-        console.log("Upload Progress:", data);
 
         if (data.status === 'processing') {
           // Show processing notification
@@ -1299,7 +1302,6 @@
       });
 
       socket.on("review_progress", function (data) {
-        console.log("Review Progress:", data);
 
         const paperId = data.paper_id;
         const status = data.status;
@@ -1334,9 +1336,7 @@
         }
       });
 
-      // Listen for real-time analysis progress events
       socket.on("analysis_progress", function (data) {
-        console.log("Analysis Progress:", data);
 
         // Check if we have an active analysis log on the page
         if (typeof analysisLog !== 'undefined' && analysisLog) {
@@ -1362,7 +1362,6 @@
       });
 
       socket.on("batch_progress", function (data) {
-        console.log("Batch Progress:", data);
 
         const batchNotif = activeProcessingNotifications.get('batch_' + data.batch_id);
 

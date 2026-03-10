@@ -24,6 +24,7 @@ from models.reviews import Review
 from models.consensus import Consensus
 from models.bias_flags import BiasFlag
 from models.ledger_blocks import LedgerBlock
+from utils.ledger import LedgerHasher
 from simulation.review_simulation import ReviewSimulation
 from utils.auth_middleware import login_required, require_auth, get_current_user
 import logging
@@ -117,6 +118,24 @@ def papers_list():
 
 import re
 import markdown2
+import html as _html
+
+def _safe_markdown(text: str) -> str:
+    """Convert markdown to HTML with basic XSS protection.
+    
+    Uses markdown2 safe_mode to escape raw HTML embedded in AI-generated
+    content, then strips any lingering script/iframe tags as defense-in-depth.
+    """
+    rendered = markdown2.markdown(
+        text,
+        safe_mode='escape',
+        extras=['tables', 'fenced-code-blocks', 'break-on-newline'],
+    )
+    # Defense-in-depth: strip dangerous tags even if safe_mode missed them
+    rendered = re.sub(r'<\s*script[^>]*>.*?</\s*script\s*>', '', rendered, flags=re.DOTALL | re.IGNORECASE)
+    rendered = re.sub(r'<\s*iframe[^>]*>.*?</\s*iframe\s*>', '', rendered, flags=re.DOTALL | re.IGNORECASE)
+    rendered = re.sub(r'\bon\w+\s*=', '', rendered, flags=re.IGNORECASE)  # strip event handlers
+    return rendered
 
 @dashboard_bp.route('/paper/<paper_id>')
 @login_required
@@ -135,17 +154,37 @@ def paper_detail(paper_id):
         bias_flags = BiasFlag.objects(paper=paper)
         ledger_blocks = LedgerBlock.objects(paper=paper).order_by('timestamp')
 
+        # Verify ledger chain integrity (auto-repair legacy blocks once)
+        ledger_verification = LedgerHasher.verify_chain(paper)
+        if not ledger_verification['valid'] and ledger_verification['total_blocks'] > 0:
+            LedgerHasher.rehash_chain(paper)
+            # Re-fetch blocks & re-verify after repair
+            ledger_blocks = LedgerBlock.objects(paper=paper).order_by('timestamp')
+            ledger_verification = LedgerHasher.verify_chain(paper)
+
         # Process content for Markdown rendering and cleaning
         if consensus and consensus.overall_explanation:
-            # Remove the signature
+            # Remove the signature line
             cleaned_explanation = re.sub(r'Sincerely,.*', '', consensus.overall_explanation, flags=re.DOTALL)
-            consensus.overall_explanation = markdown2.markdown(cleaned_explanation)
+            # Remove redundant "Final Scores" markdown table (scores already shown as styled cards)
+            cleaned_explanation = re.sub(
+                r'\*{0,2}Final Scores\*{0,2}\s*\n[\s\S]*?(?=\n[^|\n]|\Z)',
+                '', cleaned_explanation
+            )
+            # Remove any leftover markdown table rows (pipe-delimited)
+            cleaned_explanation = re.sub(
+                r'(^|\n)\|[^\n]+\|\s*(\n\|[^\n]+\|\s*)*',
+                '', cleaned_explanation
+            )
+            # Clean up excess blank lines
+            cleaned_explanation = re.sub(r'\n{3,}', '\n\n', cleaned_explanation).strip()
+            consensus.overall_explanation = _safe_markdown(cleaned_explanation)
 
         processed_reviews = []
         for r in reviews:
             review_dict = r.to_dict()
             if review_dict.get('written_feedback'):
-                review_dict['written_feedback'] = markdown2.markdown(review_dict['written_feedback'])
+                review_dict['written_feedback'] = _safe_markdown(review_dict['written_feedback'])
             processed_reviews.append(review_dict)
 
         return render_template('paper_detail.html',
@@ -153,7 +192,9 @@ def paper_detail(paper_id):
                              reviews=processed_reviews,
                              consensus=consensus.to_dict() if consensus else None,
                              bias_flags=[f.to_dict() for f in bias_flags],
-                             ledger_blocks=[b.to_dict() for b in ledger_blocks])
+                             ledger_blocks=[b.to_dict() for b in ledger_blocks],
+                             ledger_valid=ledger_verification['valid'],
+                             ledger_verification=ledger_verification)
     except Exception as e:
         logger.error(f"Error loading paper detail: {str(e)}")
         flash('Error loading paper details', 'error')
